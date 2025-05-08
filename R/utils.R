@@ -235,7 +235,7 @@ normalize_flow_sizes <- function(data, size_var, range = c(0, 1)) {
 layout_flows_within_strata <- function(flow_data, strata_positions) {
   library(dplyr)
 
-  # Join positions for source strata
+  # Join positions for source strata (outputs)
   flow_data <- flow_data %>%
     left_join(
       strata_positions,
@@ -247,7 +247,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
       start_ymax = ymax
     )
 
-  # Prepare target strata with renamed position columns
+  # Join positions for target strata (inputs)
   strata_positions_target <- strata_positions %>%
     rename(
       end_x = xmin,
@@ -255,49 +255,62 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
       end_ymax = ymax
     )
 
-  # Join positions for target strata
   flow_data <- flow_data %>%
     left_join(
       strata_positions_target,
       by = c("OmicLayer_to" = "Layer", "stratum_to" = "group")
     )
 
-  # Filter out zero-size flows BEFORE allocation
+  # Remove zero-size flows
   flow_data <- flow_data %>%
     filter(size > 0)
 
-  # Allocate flows within source strata (from top to bottom),
-  # grouped by source layer + stratum only
-  flow_data <- flow_data %>%
-    group_by(OmicLayer_from, stratum_from) %>%
-    arrange(Drug, OmicLayer_to, stratum_to) %>%
-    mutate(
-      total_start_height = start_ymax - start_ymin,
-      n_flows = n(),
-      flow_height = total_start_height / n_flows,
-      flow_index = row_number(),
-      flow_start_y = start_ymax - flow_height * flow_index
-    ) %>%
-    ungroup()
+  ###### A. OUTPUTS (from each stratum) ######
+flow_data <- flow_data %>%
+  group_by(OmicLayer_from, stratum_from) %>%
+  mutate(
+    total_height = start_ymax - start_ymin,
+    drug_index = as.numeric(factor(Drug)),
+    n_drugs = n_distinct(Drug),
+    drug_height = total_height / n_drugs,
+    drug_start_y = start_ymin + (drug_index - 1) * drug_height
+  ) %>%
+  group_by(OmicLayer_from, stratum_from, Drug) %>%
+  arrange(OmicLayer_from, stratum_from, Drug, OmicLayer_to, stratum_to) %>%  # <== ensure consistent flow stacking order
+  mutate(
+    size_sum = sum(size),
+    norm_size = size / size_sum * drug_height,
+    output_start_y = drug_start_y + drug_height - cumsum(norm_size),
+    output_end_y = output_start_y + norm_size
+  ) %>%
+  ungroup()
 
-  # Allocate flows within target strata (from top to bottom),
-  # grouped by target layer + stratum only
+  ###### B. INPUTS (to each stratum) ######
   flow_data <- flow_data %>%
     group_by(OmicLayer_to, stratum_to) %>%
-    arrange(Drug, OmicLayer_from, stratum_from) %>%
     mutate(
-      total_end_height = end_ymax - end_ymin,
-      n_flows = n(),
-      flow_height = total_end_height / n_flows,
-      flow_index = row_number(),
-      flow_end_y = end_ymax - flow_height * flow_index
+      total_height_in = end_ymax - end_ymin,
+      drug_index_in = as.numeric(factor(Drug)),
+      n_drugs_in = n_distinct(Drug),
+      drug_height_in = total_height_in / n_drugs_in,
+      drug_start_y_in = end_ymin + (drug_index_in - 1) * drug_height_in
+    ) %>%
+    group_by(OmicLayer_to, stratum_to, Drug) %>%
+    mutate(
+      size_sum_in = sum(size),
+      norm_size_in = size / size_sum_in * drug_height_in,
+      input_start_y = drug_start_y_in + cumsum(lag(norm_size_in, default = 0)),
+      input_end_y = input_start_y + norm_size_in
     ) %>%
     ungroup()
 
-  # Assign final coordinates
-  flow_data$start_y <- flow_data$flow_start_y
-  flow_data$end_y <- flow_data$flow_end_y
-  flow_data$flow_width <- flow_data$flow_height
+  # Assign final flow positions
+  flow_data <- flow_data %>%
+    mutate(
+      start_y = output_start_y,
+      end_y = input_start_y,
+      flow_width = norm_size  # width is set by output size
+    )
 
   return(flow_data)
 }
