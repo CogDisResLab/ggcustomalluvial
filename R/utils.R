@@ -1,76 +1,73 @@
-#' Layout Strata Positions
+#' Layout Strata Positions with User-Defined Order
 #'
-#' This function computes the positions for strata based on a grouping variable.
-#' It can automatically distribute strata along the x-axis and calculate y-positions based on the data.
+#' This function computes the positions for strata based on a user-provided order.
 #'
-#' @param data A data frame containing the strata data.
-#' @param group_var The grouping variable used to define strata.
-#' @return A data frame with the computed strata positions.
+#' @param data A data frame containing the strata data with 'Layer' and 'group' columns.
+#' @param strata_order A named list where names are omics layers and values are character vectors
+#'                     specifying the desired order of strata within each layer.
+#' @return A data frame with the computed strata positions (xmin, xmax, ymin, ymax, Layer_Pos).
 #' @export
-layout_strata_positions <- function(data, group_var) {
-  # Calculate the number of strata per layer
-  strata_per_layer <- length(unique(data[[group_var]]))  # Number of unique signaling types
 
-  # Create empty columns for the positions
-  data$ymin <- NA
-  data$ymax <- NA
-  data$xmin <- NA
-  data$xmax <- NA
-  data$Layer_Pos <- NA  # To hold the x positions for layers
-  
-  # Make sure to retain the 'Signaling' variable
-  signaling_column <- data[[group_var]]  # Keep the 'Signaling' column
-  
-  # Calculate ymin and ymax for each stratum by layer
-  # This ensures strata are spaced equally on the y-axis
-  for (i in seq_along(unique(data$Layer))) {
-    # Get the subset of data corresponding to the current layer
-    layer_data <- subset(data, Layer == unique(data$Layer)[i])
-    
-    # Assign unique y positions for each group within the layer
-    n_groups <- nrow(layer_data)
-    y_positions <- seq(0, 1, length.out = n_groups)
-    
-    # Set the ymin and ymax for each stratum
-    data$ymin[data$Layer == unique(data$Layer)[i]] <- rev(y_positions)
-    data$ymax[data$Layer == unique(data$Layer)[i]] <- rev(y_positions + 0.2) # Padding between strata
+layout_strata_positions <- function(data, strata_order) {
+  library(dplyr)
 
-    # Calculate xmin and xmax (positions on the x-axis)
-    # The xmin and xmax will be determined based on the layer's position on the x-axis
-    data$xmin[data$Layer == unique(data$Layer)[i]] <- ((i-1)*10)+4 - 3  # Slight padding to make rectangles visible
-    data$xmax[data$Layer == unique(data$Layer)[i]] <- ((i-1)*10)+4 + 3  # Slight padding to make rectangles visible
-    
-    # Set the layer positions (Layer_Pos) for the strata
-    data$Layer_Pos[data$Layer == unique(data$Layer)[i]] <- ((i-1)*10)+4
+  # Extract unique layers
+  unique_layers <- unique(data$Layer)
+
+  for (layer in unique_layers) {
+    # Filter and prepare data for current layer
+    layer_data <- data %>%
+      filter(Layer == layer) %>%
+      mutate(group = trimws(group)) %>%
+      select(-any_of(c("ymin", "ymax")))  # Remove potential conflicting columns
+
+    unique_groups <- unique(layer_data$group)
+
+    if (length(unique_groups) > 0) {
+      # Determine the order of groups
+      ordered_groups <- strata_order[[layer]] %||% rev(sort(unique_groups))
+
+      # Compute vertical layout values
+      padding_proportion <- 0.05
+      total_padding <- (length(ordered_groups) + 1) * padding_proportion
+      available_height <- 1 - total_padding
+
+      if (available_height > 0) {
+        stratum_height <- available_height / length(ordered_groups)
+        y_positions_start <- seq(padding_proportion, 1 - padding_proportion, length.out = length(ordered_groups)) - (stratum_height / 2)
+
+        group_y_positions <- data.frame(
+          group = ordered_groups,
+          ymin = y_positions_start,
+          ymax = y_positions_start + stratum_height
+        )
+
+        # Join new ymin/ymax values into layer_data
+        layer_data <- layer_data %>%
+          left_join(group_y_positions, by = "group")
+
+        # Merge the updated layer_data back into the full data
+        data <- data %>%
+          filter(Layer != layer) %>%
+          bind_rows(layer_data)
+      }
+    }
+
+    # Ensure x columns exist before mutate
+    if (!"xmin" %in% names(data)) data$xmin <- NA_real_
+    if (!"xmax" %in% names(data)) data$xmax <- NA_real_
+    if (!"Layer_Pos" %in% names(data)) data$Layer_Pos <- NA_real_
+
+    # Compute x positions
+    layer_index <- which(unique_layers == layer)
+    data <- data %>%
+      mutate(
+        xmin = ifelse(Layer == layer, (layer_index - 1) * 10 + 1, xmin),
+        xmax = ifelse(Layer == layer, (layer_index - 1) * 10 + 7, xmax),
+        Layer_Pos = ifelse(Layer == layer, (layer_index - 1) * 10 + 4, Layer_Pos)
+      )
   }
-
-  # Add the 'Signaling' variable back to the data frame
-  data[[group_var]] <- signaling_column
-
-  # Return the data with all necessary variables: xmin, xmax, ymin, ymax, Layer_Pos, and Signaling
   return(data)
-}
-
-#' Scale Color for Strata
-#'
-#' This function scales the color of strata based on a given variable, either continuous or categorical.
-#'
-#' @param data A data frame containing the strata data.
-#' @param group_var The variable to map to color.
-#' @param palette The color palette to use (for categorical).
-#' @return A vector of colors corresponding to the strata.
-#' @export
-scale_color_stratum <- function(data, group_var, palette = "Set1") {
-  # If the group_var is categorical, use discrete color scale
-  if (is.factor(data[[group_var]]) || is.character(data[[group_var]])) {
-    library(RColorBrewer)
-    color_scale <- scale_color_manual(values = brewer.pal(length(unique(data[[group_var]])), palette))
-  } else {
-    # For continuous variables, use a gradient scale
-    color_scale <- scale_color_gradient(low = "blue", high = "red")
-  }
-  
-  return(color_scale)
 }
 
 #' Layout Alluvium Paths
@@ -83,18 +80,35 @@ scale_color_stratum <- function(data, group_var, palette = "Set1") {
 #' @return A data frame with computed x/y positions for alluvium paths.
 #' @export
 layout_alluvium_paths <- function(data, group_var) {
-  # Placeholder: You could define the specific logic for computing the flow paths here
-  # For simplicity, we'll create straight paths from one stratum to the next.
-  
-  # Generate simple x/y paths based on strata positions
+  # Extract strata positions
   strata_positions <- layout_strata_positions(data, group_var)
-  
-  # Placeholder: simple straight paths between strata
-  data$start_x <- strata_positions$xmin[match(data$source, strata_positions[[group_var]])]
-  data$end_x <- strata_positions$xmax[match(data$target, strata_positions[[group_var]])]
+
+  # Initialize new variables to store the adjusted y positions for start and end
   data$start_y <- strata_positions$ymin[match(data$source, strata_positions[[group_var]])]
   data$end_y <- strata_positions$ymax[match(data$target, strata_positions[[group_var]])]
-  
+
+  # Separate strata positions by source and target group
+  source_group_ymin <- strata_positions %>%
+    group_by(group) %>%
+    summarise(min_y = min(ymin)) %>%
+    rename(source_group = group)
+
+  target_group_ymax <- strata_positions %>%
+    group_by(group) %>%
+    summarise(max_y = max(ymax)) %>%
+    rename(target_group = group)
+
+  # Apply the necessary adjustments to avoid overlap
+  data <- data %>%
+    left_join(source_group_ymin, by = c("source" = "source_group")) %>%
+    left_join(target_group_ymax, by = c("target" = "target_group")) %>%
+    mutate(
+      # Adjust start_y to avoid overlap
+      start_y = start_y + 0.02 * (seq_along(start_y) - 1),
+      # Adjust end_y similarly
+      end_y = end_y - 0.02 * (seq_along(end_y) - 1)
+    )
+
   return(data)
 }
 
@@ -107,20 +121,18 @@ layout_alluvium_paths <- function(data, group_var) {
 #' @param grouping_levels A vector of values for the grouping variable.
 #' @return A data frame with strata positions and grouping variable.
 #' @export
-create_strata_data <- function(n_axes, group_var = "group", grouping_levels = NULL) {
-  if (is.null(grouping_levels)) {
-    grouping_levels <- paste("Group", 1:n_strata)
-  }
-  
-  # Create a data frame with strata positions and grouping variable
-  data <- data.frame(
-    group = rep(grouping_levels, 3),
-    xmin = rep(seq(1, n_axes, by = 2), each = n_axes),
-    xmax = rep(seq(2, n_axes, by = 2), each = n_axes),
-    Layer = c(rep(4, length(grouping_levels)), rep(10, length(grouping_levels)), rep(16, length(grouping_levels)))
-  )
-  
-  return(data)
+create_strata_data <- function(n_axes, grouping_levels) {
+  n_groupings <- length(grouping_levels)
+  total_rows <- n_axes * n_groupings  # This should be 6 if n_axes = 3 and n_groupings = 2
+
+  # Generate data frame with correct row lengths
+  strata_data <- data.frame(
+    group = rep(grouping_levels, each = n_axes),
+    xmin = rep(seq(1, n_axes, by = 2), length.out = total_rows),
+    xmax = rep(seq(2, n_axes + 1, by = 2), length.out = total_rows),
+    Layer = rep(4:6, length.out = total_rows))
+
+  return(strata_data)
 }
 
 #' Normalize Alluvium Sizes
@@ -138,7 +150,7 @@ normalize_alluvium_sizes <- function(data, size_var, range = c(0, 1), group_vars
       group_by(across(all_of(group_vars))) %>%
       mutate(
         normalized_size = (get(size_var) - min(get(size_var), na.rm = TRUE)) /
-                          (max(get(size_var), na.rm = TRUE) - min(get(size_var), na.rm = TRUE)),
+          (max(get(size_var), na.rm = TRUE) - min(get(size_var), na.rm = TRUE)),
         normalized_size = normalized_size * diff(range) + range[1]
       ) %>%
       ungroup()
@@ -146,11 +158,11 @@ normalize_alluvium_sizes <- function(data, size_var, range = c(0, 1), group_vars
     # Global normalization (current behavior)
     min_size <- min(data[[size_var]], na.rm = TRUE)
     max_size <- max(data[[size_var]], na.rm = TRUE)
-    
+
     data$normalized_size <- (data[[size_var]] - min_size) / (max_size - min_size)
     data$normalized_size <- data$normalized_size * (diff(range)) + range[1]
   }
-  
+
   return(data)
 }
 
@@ -184,6 +196,13 @@ generate_alluvium_polygons <- function(data, n = 50, curve_range = 10) {
     }
   }
 
+  # Check if required columns exist
+  required_cols <- c("start_x", "end_x", "start_ymin", "end_ymin", "start_ymax", "end_ymax", "Drug")
+  missing_cols <- setdiff(required_cols, colnames(data))
+  if (length(missing_cols) > 0) {
+    stop(paste("Missing required columns: ", paste(missing_cols, collapse = ", ")))
+  }
+
   curve_fun <- make_sigmoid(curve_range)
   t_vals <- seq(0, 1, length.out = n)
   f_vals <- curve_fun(t_vals)
@@ -191,152 +210,78 @@ generate_alluvium_polygons <- function(data, n = 50, curve_range = 10) {
   polygons <- lapply(seq_len(nrow(data)), function(i) {
     row <- data[i, ]
 
-    x_path <- row$start_x + (row$end_x - row$start_x) * t_vals
-    y_btm <- row$start_y + (row$end_y - row$start_y) * f_vals
-    y_top <- y_btm + row$flow_width
+    # Check for NA values and handle them
+    if (any(is.na(row[c("start_ymin", "end_ymin", "start_ymax", "end_ymax")]))) {
+      message(paste("Skipping row", i, "due to missing y positions"))
+      return(NULL)  # Skip this iteration if there are missing values
+    }
 
+    row$flow_width <- abs(row$start_ymax - row$start_ymin)
+
+    # Use linear X, curved Y (adjusting for the flow width)
+    x_path <- row$start_x + (row$end_x - row$start_x) * t_vals
+    y_btm  <- row$start_ymin + (row$end_ymin - row$start_ymin) * f_vals
+    y_top  <- row$start_ymax + (row$end_ymax - row$start_ymax) * f_vals
+
+    # Create a data frame with the required columns
     data.frame(
       x = c(x_path, rev(x_path)),
       y = c(y_btm, rev(y_top)),
       group = paste0("ribbon_", i),
-      fill = row$Drug
+      fill = factor(rep(row$Drug, length(x_path) * 2), levels = unique(data$Drug))
     )
   })
 
-  do.call(rbind, polygons)
-}
-#' Normalize Flow Sizes
-#'
-#' This function normalizes the flow sizes to a specific range, useful for adjusting the width of the flow lines.
-#'
-#' @param data A data frame with flow data.
-#' @param size_var The column in the data frame that represents the size of each flow.
-#' @param range The range to which the flow sizes will be normalized (default is 0 to 1).
-#' @return A data frame with normalized flow sizes.
-normalize_flow_sizes <- function(data, size_var, range = c(0, 1)) {
-  # Normalize the size values to the desired range
-  min_size <- min(data[[size_var]], na.rm = TRUE)
-  max_size <- max(data[[size_var]], na.rm = TRUE)
-  
-  data$normalized_size <- (data[[size_var]] - min_size) / (max_size - min_size)
-  data$normalized_size <- data$normalized_size * (diff(range)) + range[1]  # Apply range scaling
-  
-  return(data)
-}
+  # Remove NULL entries caused by skipped rows
+  polygons <- polygons[!sapply(polygons, is.null)]
 
+  # Return combined polygons or empty data frame if no valid polygons
+  if (length(polygons) > 0) {
+    return(do.call(rbind, polygons))
+  } else {
+    return(data.frame())
+  }
+}
 #' Layout Flow Paths
 #'
 #' This function computes the coordinates for flow paths based on the data, connecting strata
 #' based on the flow information.
 #'
-#' @param data A data frame containing flow information.
-#' @param group_var The grouping variable for strata.
+#' @param flow_data A data frame containing flow information with columns
+#'   like OmicLayer_from, stratum_from, OmicLayer_to, stratum_to, and size.
+#' @param strata_positions A data frame with strata positions including
+#'   Layer, group, xmin, xmax, ymin, and ymax.
 #' @return A data frame with computed x/y positions for the flow paths.
 layout_flows_within_strata <- function(flow_data, strata_positions) {
   library(dplyr)
 
-  # Join positions for source strata (outputs)
-  flow_data <- flow_data %>%
-    left_join(
-      strata_positions,
-      by = c("OmicLayer_from" = "Layer", "stratum_from" = "group")
-    ) %>%
-    rename(
-      start_x = xmax,
-      start_ymin = ymin,
-      start_ymax = ymax
-    )
 
-  # Join positions for target strata (inputs)
+  # Join with starting strata positions
+  flow_data <- flow_data %>%
+    left_join(strata_positions %>% mutate(Layer = as.character(Layer)),
+              by = c("OmicLayer_from" = "Layer", "stratum_from" = "group")) %>%
+    rename(start_x = xmax, start_ymin = ymin, start_ymax = ymax) # Alluvia originate from the end of the source stratum
+
+
+  # Join with ending strata positions - MODIFIED TO CONNECT TO THE BEGINNING (xmin)
   strata_positions_target <- strata_positions %>%
     rename(
-      end_x = xmin,
+      end_x = xmin, # Changed from xmax to xmin
       end_ymin = ymin,
       end_ymax = ymax
     )
 
+  
   flow_data <- flow_data %>%
     left_join(
-      strata_positions_target,
+      strata_positions_target %>% mutate(Layer = as.character(Layer)),
       by = c("OmicLayer_to" = "Layer", "stratum_to" = "group")
     )
-
-  # Remove zero-size flows
+  # Ensure zero-size flows are removed
   flow_data <- flow_data %>%
     filter(size > 0)
 
-  ###### A. OUTPUTS (from each stratum) ######
-flow_data <- flow_data %>%
-  group_by(OmicLayer_from, stratum_from) %>%
-  mutate(
-    total_height = start_ymax - start_ymin,
-    drug_index = as.numeric(factor(Drug)),
-    n_drugs = n_distinct(Drug),
-    drug_height = total_height / n_drugs,
-    drug_start_y = start_ymin + (drug_index - 1) * drug_height
-  ) %>%
-  group_by(OmicLayer_from, stratum_from, Drug) %>%
-  arrange(OmicLayer_from, stratum_from, Drug, OmicLayer_to, stratum_to) %>%  # <== ensure consistent flow stacking order
-  mutate(
-    size_sum = sum(size),
-    norm_size = size / size_sum * drug_height,
-    output_start_y = drug_start_y + drug_height - cumsum(norm_size),
-    output_end_y = output_start_y + norm_size
-  ) %>%
-  ungroup()
-
-  ###### B. INPUTS (to each stratum) ######
-  flow_data <- flow_data %>%
-    group_by(OmicLayer_to, stratum_to) %>%
-    mutate(
-      total_height_in = end_ymax - end_ymin,
-      drug_index_in = as.numeric(factor(Drug)),
-      n_drugs_in = n_distinct(Drug),
-      drug_height_in = total_height_in / n_drugs_in,
-      drug_start_y_in = end_ymin + (drug_index_in - 1) * drug_height_in
-    ) %>%
-    group_by(OmicLayer_to, stratum_to, Drug) %>%
-    mutate(
-      size_sum_in = sum(size),
-      norm_size_in = size / size_sum_in * drug_height_in,
-      input_start_y = drug_start_y_in + cumsum(lag(norm_size_in, default = 0)),
-      input_end_y = input_start_y + norm_size_in
-    ) %>%
-    ungroup()
-
-  # Assign final flow positions
-  flow_data <- flow_data %>%
-    mutate(
-      start_y = output_start_y,
-      end_y = input_start_y,
-      flow_width = norm_size  # width is set by output size
-    )
-
   return(flow_data)
-}
-#' Generate Flow Visualization Data
-#'
-#' This function prepares the data for visualization by calculating the normalized flow widths.
-#' It also determines the path coordinates for each flow.
-#'
-#' @param data A data frame containing flow information.
-#' @param size_col The column representing the flow size.
-#' @return A data frame with flow paths and normalized sizes for visualization.
-generate_flow_viz_data <- function(data, size_col = "size") {
-  # Preserve relevant grouping variable like Drug
-  if (!"Drug" %in% colnames(data)) stop("Input data must contain 'Drug' column")
-
-  # Normalize flow sizes
-  data <- normalize_flow_sizes(data, size_col)
-
-  # Layout flow paths
-  data <- layout_flow_paths(data, "OmicLayer_from")
-
-  # Generate additional columns for visualization
-  data$flow_width <- data$normalized_size * 5
-  data$flow_y_center <- (data$start_y + data$end_y) / 2
-
-  return(data)
 }
 
 #' Plot Flow Paths
@@ -350,7 +295,7 @@ generate_flow_viz_data <- function(data, size_col = "size") {
 #' @return A ggplot object with the flow visualization.
 plot_flow_paths <- function(data, x_col = "start_x", y_col = "flow_y_center", width_col = "flow_width") {
   library(ggplot2)
-  
+
   ggplot(data, aes(x = !!sym(x_col), y = !!sym(y_col), group = interaction(OmicLayer_from, OmicLayer_to))) +
     geom_segment(aes(xend = end_x, yend = flow_y_center, size = !!sym(width_col)), lineend = "round") +
     scale_size_continuous(range = c(0.1, 5)) +  # Adjust size scale for clarity
@@ -360,28 +305,14 @@ plot_flow_paths <- function(data, x_col = "start_x", y_col = "flow_y_center", wi
     facet_wrap(~Drug)
 }
 
-create_background_strata <- function(n_axes = 3) {
-  # Define signaling groups
-  signaling_groups <- c(
-    "Dopaminergic",
-    "Serotonergic",
-    "Adrenergic",
-    "Glutamatergic",
-    "Gabaergic",
-    "Non-Canonical Signaling"
-  )
+create_background_strata <- function(data, group_var = "group", layer_var = "Layer") {
+  strata_data <- data %>%
+    select(!!sym(group_var), !!sym(layer_var)) %>%
+    distinct() %>%
+    rename(group = !!sym(group_var), Layer = !!sym(layer_var))
 
-  # Step 1: Create strata data across layers
-  strata_data <- create_strata_data(
-    n_axes = n_axes,
-    group_var = "Signaling",
-    grouping_levels = signaling_groups
-  )
-
-  # Step 2: Layout strata positions
   strata_layout <- layout_strata_positions(strata_data, group_var = "group")
 
-  # Step 3: Plot background strata outlines with labels
   p <- ggplot(strata_layout) +
     geom_rect(
       aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
@@ -397,80 +328,115 @@ create_background_strata <- function(n_axes = 3) {
   return(p)
 }
 
-generate_alluvium_polygons <- function(data, n = 50, curve_range = 10) {
-  make_sigmoid <- function(range) {
-    function(t) {
-      s <- 1 / (1 + exp(-range * (t - 0.5)))
-      (s - min(s)) / (max(s) - min(s))
-    }
-  }
-
-  curve_fun <- make_sigmoid(curve_range)
-  t_vals <- seq(0, 1, length.out = n)
-  f_vals <- curve_fun(t_vals)
-
-  polygons <- lapply(seq_len(nrow(data)), function(i) {
-    row <- data[i, ]
-
-    x_path <- row$start_x + (row$end_x - row$start_x) * t_vals
-    y_btm <- row$start_y + (row$end_y - row$start_y) * f_vals
-    y_top <- y_btm + row$flow_width
-
-    data.frame(
-      x = c(x_path, rev(x_path)),
-      y = c(y_btm, rev(y_top)),
-      group = paste0("ribbon_", i),
-      fill = row$Drug
-    )
-  })
-
-  do.call(rbind, polygons)
-}
-
-plot_alluvial_from_data <- function(input_data) {
+#' Plot Alluvial Diagram from Data with User-Defined Strata Order
+#'
+#' This function takes flow data and orders for omics layers and strata to
+#' generate an alluvial plot.
+#'
+#' @param input_data A data frame containing flow information.
+#' @param omics_order A character vector specifying the order of omics layers.
+#' @param strata_order A named list where names are omics layers and values are character vectors
+#'                     specifying the desired order of strata within each layer.
+#' @return A ggplot object representing the alluvial plot.
+#' @export
+plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL) {
   library(dplyr)
   library(ggplot2)
+  library(RColorBrewer)
+  library(tidyr) # Ensure tidyr is loaded
 
-  # STEP 1: Extract strata positions
+  if (is.null(omics_order)) {
+    stop("Error: The 'omics_order' argument must be provided.")
+  }
+
+  # Convert omics layers to ordered factors
+  input_data <- input_data %>%
+    mutate(
+      OmicLayer_from = factor(OmicLayer_from, levels = omics_order, ordered = TRUE),
+      OmicLayer_to = factor(OmicLayer_to, levels = omics_order, ordered = TRUE)
+    )
+
+  # Check for incorrect flow direction
+  invalid_flows <- input_data %>%
+    filter(as.numeric(OmicLayer_to) <= as.numeric(OmicLayer_from))
+
+  if (nrow(invalid_flows) > 0) {
+    invalid_flow_details <- invalid_flows %>%
+      select(OmicLayer_from, stratum_from, OmicLayer_to, stratum_to) %>%
+      head() %>%
+      unite(col = "flow", sep = " -> ") %>%
+      pull(flow)
+
+    error_message <- paste(
+      "Error: Some flows are moving against or staying within the specified omics layer order.",
+      "\nExamples of invalid flows:",
+      paste(invalid_flow_details, collapse = ", "),
+      if (nrow(invalid_flows) > 5) paste0("... and ", nrow(invalid_flows) - 5, " more.") else ""
+    )
+    stop(error_message)
+  }
+
+  # Collect all strata
   strata_from <- input_data %>%
     select(Layer = OmicLayer_from, group = stratum_from) %>%
     distinct()
-  input_data[, c('xstart', 'xstop')] <- NA
-  input_data[which(input_data$Layer=="Proteomic"),]$start_x <- input_data[which(input_data$Layer=="Proteomic"),]$xmax
-  input_data[which(input_data$Layer=="Proteomic"),]$stop_x <- input_data[which(input_data$Layer=="Proteomic"),]$xmax + 4
   strata_to <- input_data %>%
     select(Layer = OmicLayer_to, group = stratum_to) %>%
     distinct()
-
   all_strata <- bind_rows(strata_from, strata_to) %>% distinct()
-  strata_positions <- layout_strata_positions(all_strata, group_var = "group")
 
-  # STEP 2: Layout flow positions within each stratum
+  # Layout strata positions using the provided order
+  strata_order_cleaned <- lapply(strata_order, function(x) gsub("\\s+", "", x))
+
+  strata_positions <- layout_strata_positions(all_strata, strata_order)
+
   flow_data <- layout_flows_within_strata(input_data, strata_positions)
 
-  # STEP 3: Construct group and visual properties
   flow_data <- flow_data %>%
     mutate(
       group = paste(Drug, stratum_from, stratum_to, sep = "_"),
-      fill = Drug
+      start_layer_num = as.numeric(factor(OmicLayer_from, levels = omics_order)),
+      end_layer_num = as.numeric(factor(OmicLayer_to, levels = omics_order))
     )
 
-  # STEP 4: Generate polygon ribbons
-  ribbon_data <- generate_alluvium_polygons(flow_data, curve_range = 5)
+  # Defensive renaming: Ensure start_x and end_x don't exist
+  if (!("start_x" %in% names(flow_data))) {
+    flow_data <- flow_data %>% rename(start_x = start_layer_num)
+  } else {
+    flow_data <- flow_data %>% rename(start_x_calc = start_layer_num) # Rename to a temp name
+  }
 
-  # STEP 5: Create background
-  background_plot <- create_background_strata(n_axes = 3)
+  if (!("end_x" %in% names(flow_data))) {
+    flow_data <- flow_data %>% rename(end_x = end_layer_num)
+  } else {
+    flow_data <- flow_data %>% rename(end_x_calc = end_layer_num) # Rename to a temp name
+  }
 
-  # STEP 6: Combine plot
-  final_plot <- background_plot +
-    geom_polygon(
-      data = ribbon_data,
-      aes(x = x, y = y, group = group, fill = fill),
-      color = NA,
-      alpha = 0.6
+  ribbon_data <- generate_alluvium_polygons(flow_data, curve_range = 0.5)
+  unique_drugs <- unique(input_data$Drug)
+  ribbon_data$fill <- factor(ribbon_data$fill, levels = unique_drugs)
+
+  # Dynamically assign colors
+  drug_colors <- setNames(brewer.pal(length(unique_drugs), "Set2"), unique_drugs)
+
+  final_plot <- ggplot(ribbon_data, aes(x = x, y = y, group = group, fill = fill)) +
+    geom_polygon(color = NA, alpha = 0.6) +
+    geom_rect(
+      data = strata_positions,
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+      fill = "white", color = "black", linewidth = 0.3,
+      inherit.aes = FALSE
     ) +
-    scale_fill_manual(values = c("AH236" = "#1f77b4", "IS141" = "#ff7f0e")) +
-    theme_void()
+    geom_text(
+      data = strata_positions,
+      aes(x = Layer_Pos, y = (ymin + ymax) / 2, label = group),
+      size = 3, hjust = 0.5,
+      inherit.aes = FALSE
+    ) +
+    scale_x_continuous(breaks = seq_along(omics_order), labels = omics_order) +
+    scale_fill_manual(name = "Drug", values = drug_colors, limits = unique_drugs) +
+    theme_void() +
+    theme(legend.position = "none")
 
   return(final_plot)
 }
