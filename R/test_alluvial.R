@@ -1,9 +1,8 @@
 # Load necessary libraries
-install.packages(c('testthat', 'ggplot2', 'dplyr'))
+install.packages(c('testthat', 'ggplot2', 'dplyr', 'bezier'))
 library(testthat)
 library(ggplot2)
 library(dplyr)
-library(vdiffr)
 source('./R/utils.R')
 
 # ========== LOAD TEST DATA AND PROCESS FOR TESTING ==========
@@ -51,7 +50,7 @@ mock_strata_positions <- layout_strata_positions(all_strata, strata_order = samp
 mock_flow_data_with_coords <- layout_flows_within_strata(mock_input_data, mock_strata_positions)
 
 # Generate alluvium polygons (this is part of the plotting process)
-mock_ribbon_data <- generate_alluvium_polygons(mock_flow_data_with_coords, curve_range = 5)
+mock_ribbon_data <- generate_alluvium_polygons(mock_flow_data_with_coords, mock_strata_positions, curve_range = 5)
 
 # ========== HELPER FUNCTION FOR TESTING LAYOUT ==========
 test_layout_strata <- function(input_data, strata_order) {
@@ -102,7 +101,7 @@ test_that("generate_alluvium_polygons returns valid polygon data", {
     distinct(Layer, group) # Ensure uniqueness here
   mock_strata_positions_test <- layout_strata_positions(all_strata_test, strata_order = sample_strata_order)
   mock_flow_data_with_coords_test <- layout_flows_within_strata(mock_input_data, mock_strata_positions_test)
-  mock_ribbon_data_test <- generate_alluvium_polygons(mock_flow_data_with_coords_test, n=50, curve_range = 5)
+  mock_ribbon_data_test <- generate_alluvium_polygons(mock_flow_data_with_coords_test, mock_strata_positions_test, n=50, curve_range = 5)
   expect_true(all(c("x", "y", "group", "fill") %in% names(mock_ribbon_data_test)))
   expect_gt(nrow(mock_ribbon_data_test), 0)
 })
