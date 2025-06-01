@@ -1,0 +1,145 @@
+Drug,OmicLayer_from,stratum_from,OmicLayer_to,stratum_to,size
+AH236,Proteomic,adrenergic,Transcriptomic,adrenergic,0
+AH236,Proteomic,adrenergic,Transcriptomic,dopaminergic,0
+AH236,Proteomic,adrenergic,Transcriptomic,gabaergic,0
+AH236,Proteomic,adrenergic,Transcriptomic,glutamatergic,0
+AH236,Proteomic,adrenergic,Transcriptomic,non-canonical signaling,0
+AH236,Proteomic,adrenergic,Transcriptomic,serotonergic,0
+AH236,Proteomic,dopaminergic,Transcriptomic,adrenergic,0
+AH236,Proteomic,dopaminergic,Transcriptomic,dopaminergic,0
+AH236,Proteomic,dopaminergic,Transcriptomic,gabaergic,0
+AH236,Proteomic,dopaminergic,Transcriptomic,glutamatergic,0
+AH236,Proteomic,dopaminergic,Transcriptomic,non-canonical signaling,0
+AH236,Proteomic,dopaminergic,Transcriptomic,serotonergic,0
+AH236,Proteomic,gabaergic,Transcriptomic,adrenergic,0
+AH236,Proteomic,gabaergic,Transcriptomic,dopaminergic,0
+AH236,Proteomic,gabaergic,Transcriptomic,gabaergic,0
+AH236,Proteomic,gabaergic,Transcriptomic,glutamatergic,0
+AH236,Proteomic,gabaergic,Transcriptomic,non-canonical signaling,0
+AH236,Proteomic,gabaergic,Transcriptomic,serotonergic,0
+AH236,Proteomic,glutamatergic,Transcriptomic,adrenergic,0
+AH236,Proteomic,glutamatergic,Transcriptomic,dopaminergic,0
+AH236,Proteomic,glutamatergic,Transcriptomic,gabaergic,0
+AH236,Proteomic,glutamatergic,Transcriptomic,glutamatergic,0
+AH236,Proteomic,glutamatergic,Transcriptomic,non-canonical signaling,0
+AH236,Proteomic,glutamatergic,Transcriptomic,serotonergic,0
+AH236,Proteomic,non-canonical signaling,Transcriptomic,adrenergic,0.27113401011625954
+AH236,Proteomic,non-canonical signaling,Transcriptomic,dopaminergic,0.07814732102769426
+AH236,Proteomic,non-canonical signaling,Transcriptomic,gabaergic,0.28471281228420736
+AH236,Proteomic,non-canonical signaling,Transcriptomic,glutamatergic,0.43009926766647194
+AH236,Proteomic,non-canonical signaling,Transcriptomic,non-canonical signaling,0
+AH236,Proteomic,non-canonical signaling,Transcriptomic,serotonergic,0
+AH236,Proteomic,serotonergic,Transcriptomic,adrenergic,0
+AH236,Proteomic,serotonergic,Transcriptomic,dopaminergic,0
+AH236,Proteomic,serotonergic,Transcriptomic,gabaergic,0
+AH236,Proteomic,serotonergic,Transcriptomic,glutamatergic,0
+AH236,Proteomic,serotonergic,Transcriptomic,non-canonical signaling,0
+AH236,Proteomic,serotonergic,Transcriptomic,serotonergic,0
+IS141,Proteomic,adrenergic,Transcriptomic,adrenergic,0
+IS141,Proteomic,adrenergic,Transcriptomic,dopaminergic,0
+IS141,Proteomic,adrenergic,Transcriptomic,gabaergic,0
+IS141,Proteomic,adrenergic,Transcriptomic,glutamatergic,0
+IS141,Proteomic,adrenergic,Transcriptomic,non-canonical signaling,0
+IS141,Proteomic,adrenergic,Transcriptomic,serotonergic,0
+IS141,Proteomic,dopaminergic,Transcriptomic,adrenergic,0
+IS141,Proteomic,dopaminergic,Transcriptomic,dopaminergic,0
+IS141,Proteomic,dopaminergic,Transcriptomic,gabaergic,0
+IS141,Proteomic,dopaminergic,Transcriptomic,glutamatergic,0
+IS141,Proteomic,dopaminergic,Transcriptomic,non-canonical signaling,0
+IS141,Proteomic,dopaminergic,Transcriptomic,serotonergic,0
+IS141,Proteomic,gabaergic,Transcriptomic,adrenergic,0
+IS141,Proteomic,gabaergic,Transcriptomic,dopaminergic,0
+IS141,Proteomic,gabaergic,Transcriptomic,gabaergic,0
+IS141,Proteomic,gabaergic,Transcriptomic,glutamatergic,0
+IS141,Proteomic,gabaergic,Transcriptomic,non-canonical signaling,0
+IS141,Proteomic,gabaergic,Transcriptomic,serotonergic,0
+IS141,Proteomic,glutamatergic,Transcriptomic,adrenergic,0
+IS141,Proteomic,glutamatergic,Transcriptomic,dopaminergic,0
+IS141,Proteomic,glutamatergic,Transcriptomic,gabaergic,0
+IS141,Proteomic,glutamatergic,Transcriptomic,glutamatergic,0
+IS141,Proteomic,glutamatergic,Transcriptomic,non-canonical signaling,0
+IS141,Proteomic,glutamatergic,Transcriptomic,serotonergic,0
+IS141,Proteomic,non-canonical signaling,Transcriptomic,adrenergic,0.6272465488238468
+IS141,Proteomic,non-canonical signaling,Transcriptomic,dopaminergic,0.07814732102769426
+IS141,Proteomic,non-canonical signaling,Transcriptomic,gabaergic,0.640292848980531
+IS141,Proteomic,non-canonical signaling,Transcriptomic,glutamatergic,0.43009926766647194
+IS141,Proteomic,non-canonical signaling,Transcriptomic,non-canonical signaling,0
+IS141,Proteomic,non-canonical signaling,Transcriptomic,serotonergic,0.8120967235673705
+IS141,Proteomic,serotonergic,Transcriptomic,adrenergic,0
+IS141,Proteomic,serotonergic,Transcriptomic,dopaminergic,0
+IS141,Proteomic,serotonergic,Transcriptomic,gabaergic,0
+IS141,Proteomic,serotonergic,Transcriptomic,glutamatergic,0
+IS141,Proteomic,serotonergic,Transcriptomic,non-canonical signaling,0
+IS141,Proteomic,serotonergic,Transcriptomic,serotonergic,0
+AH236,Transcriptomic,adrenergic,Kinomic,adrenergic,0.00521043292688495
+AH236,Transcriptomic,adrenergic,Kinomic,dopaminergic,0
+AH236,Transcriptomic,adrenergic,Kinomic,gabaergic,0.007130704318203556
+AH236,Transcriptomic,adrenergic,Kinomic,glutamatergic,0.002260302406584913
+AH236,Transcriptomic,adrenergic,Kinomic,non-canonical signaling,0.004380578887675838
+AH236,Transcriptomic,adrenergic,Kinomic,serotonergic,0.0060189342337563815
+AH236,Transcriptomic,dopaminergic,Kinomic,adrenergic,0.001501771668024795
+AH236,Transcriptomic,dopaminergic,Kinomic,dopaminergic,0
+AH236,Transcriptomic,dopaminergic,Kinomic,gabaergic,0.00205523991353677
+AH236,Transcriptomic,dopaminergic,Kinomic,glutamatergic,6.51473334943562e-4
+AH236,Transcriptomic,dopaminergic,Kinomic,non-canonical signaling,0.0012625878416195576
+AH236,Transcriptomic,dopaminergic,Kinomic,serotonergic,0.001734801125127208
+AH236,Transcriptomic,gabaergic,Kinomic,adrenergic,0.005471379304999575
+AH236,Transcriptomic,gabaergic,Kinomic,dopaminergic,0
+AH236,Transcriptomic,gabaergic,Kinomic,gabaergic,0.0074878207980339515
+AH236,Transcriptomic,gabaergic,Kinomic,glutamatergic,0.002373501776909544
+AH236,Transcriptomic,gabaergic,Kinomic,non-canonical signaling,0.004599964917747584
+AH236,Transcriptomic,gabaergic,Kinomic,serotonergic,0.006320371582715376
+AH236,Transcriptomic,glutamatergic,Kinomic,adrenergic,0.008265297979835023
+AH236,Transcriptomic,glutamatergic,Kinomic,dopaminergic,0
+AH236,Transcriptomic,glutamatergic,Kinomic,gabaergic,0.011311420149358755
+AH236,Transcriptomic,glutamatergic,Kinomic,glutamatergic,0.003585512600798716
+AH236,Transcriptomic,glutamatergic,Kinomic,non-canonical signaling,0.0069489023923509615
+AH236,Transcriptomic,glutamatergic,Kinomic,serotonergic,0.009547821776254671
+AH236,Transcriptomic,non-canonical signaling,Kinomic,adrenergic,0
+AH236,Transcriptomic,non-canonical signaling,Kinomic,dopaminergic,0
+AH236,Transcriptomic,non-canonical signaling,Kinomic,gabaergic,0
+AH236,Transcriptomic,non-canonical signaling,Kinomic,glutamatergic,0
+AH236,Transcriptomic,non-canonical signaling,Kinomic,non-canonical signaling,0
+AH236,Transcriptomic,non-canonical signaling,Kinomic,serotonergic,0
+AH236,Transcriptomic,serotonergic,Kinomic,adrenergic,0
+AH236,Transcriptomic,serotonergic,Kinomic,dopaminergic,0
+AH236,Transcriptomic,serotonergic,Kinomic,gabaergic,0
+AH236,Transcriptomic,serotonergic,Kinomic,glutamatergic,0
+AH236,Transcriptomic,serotonergic,Kinomic,non-canonical signaling,0
+AH236,Transcriptomic,serotonergic,Kinomic,serotonergic,0
+IS141,Transcriptomic,adrenergic,Kinomic,adrenergic,0.0120539141137821
+IS141,Transcriptomic,adrenergic,Kinomic,dopaminergic,0
+IS141,Transcriptomic,adrenergic,Kinomic,gabaergic,0.018482669399451594
+IS141,Transcriptomic,adrenergic,Kinomic,glutamatergic,0.005229026352026799
+IS141,Transcriptomic,adrenergic,Kinomic,non-canonical signaling,0.010134114078743154
+IS141,Transcriptomic,adrenergic,Kinomic,serotonergic,0.013924316333840083
+IS141,Transcriptomic,dopaminergic,Kinomic,adrenergic,0.001501771668024795
+IS141,Transcriptomic,dopaminergic,Kinomic,dopaminergic,0
+IS141,Transcriptomic,dopaminergic,Kinomic,gabaergic,0.0023027166936446797
+IS141,Transcriptomic,dopaminergic,Kinomic,glutamatergic,6.51473334943562e-4
+IS141,Transcriptomic,dopaminergic,Kinomic,non-canonical signaling,0.0012625878416195576
+IS141,Transcriptomic,dopaminergic,Kinomic,serotonergic,0.001734801125127208
+IS141,Transcriptomic,gabaergic,Kinomic,adrenergic,0.012304627301261842
+IS141,Transcriptomic,gabaergic,Kinomic,dopaminergic,0
+IS141,Transcriptomic,gabaergic,Kinomic,gabaergic,0.018867096309626154
+IS141,Transcriptomic,gabaergic,Kinomic,glutamatergic,0.0053377865316462355
+IS141,Transcriptomic,gabaergic,Kinomic,non-canonical signaling,0.010344896735644616
+IS141,Transcriptomic,gabaergic,Kinomic,serotonergic,0.0142139326110576
+IS141,Transcriptomic,glutamatergic,Kinomic,adrenergic,0.008265297979835023
+IS141,Transcriptomic,glutamatergic,Kinomic,dopaminergic,0
+IS141,Transcriptomic,glutamatergic,Kinomic,gabaergic,0.012673457650953313
+IS141,Transcriptomic,glutamatergic,Kinomic,glutamatergic,0.003585512600798716
+IS141,Transcriptomic,glutamatergic,Kinomic,non-canonical signaling,0.0069489023923509615
+IS141,Transcriptomic,glutamatergic,Kinomic,serotonergic,0.009547821776254671
+IS141,Transcriptomic,non-canonical signaling,Kinomic,adrenergic,0
+IS141,Transcriptomic,non-canonical signaling,Kinomic,dopaminergic,0
+IS141,Transcriptomic,non-canonical signaling,Kinomic,gabaergic,0
+IS141,Transcriptomic,non-canonical signaling,Kinomic,glutamatergic,0
+IS141,Transcriptomic,non-canonical signaling,Kinomic,non-canonical signaling,0
+IS141,Transcriptomic,non-canonical signaling,Kinomic,serotonergic,0
+IS141,Transcriptomic,serotonergic,Kinomic,adrenergic,0.015606214456373219
+IS141,Transcriptomic,serotonergic,Kinomic,dopaminergic,0
+IS141,Transcriptomic,serotonergic,Kinomic,gabaergic,0.023929530246469006
+IS141,Transcriptomic,serotonergic,Kinomic,glutamatergic,0.006770025559950852
+IS141,Transcriptomic,serotonergic,Kinomic,non-canonical signaling,0.013120647463166067
+IS141,Transcriptomic,serotonergic,Kinomic,serotonergic,0.018027826049948997
