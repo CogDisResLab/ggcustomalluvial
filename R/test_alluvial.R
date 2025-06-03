@@ -2,6 +2,7 @@
 library(testthat)
 library(ggplot2)
 library(tidyverse)
+library(purrr)
 source('./R/utils.R')
 
 # ========== LOAD TEST DATA AND PROCESS FOR TESTING ==========
