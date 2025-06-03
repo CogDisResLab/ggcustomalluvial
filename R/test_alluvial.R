@@ -1,5 +1,4 @@
 # Load necessary libraries
-install.packages(c('testthat', 'ggplot2', 'tidyverse', 'bezier'))
 library(testthat)
 library(ggplot2)
 library(tidyverse)
