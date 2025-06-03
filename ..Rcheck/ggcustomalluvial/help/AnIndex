@@ -1,6 +1,0 @@
-create_strata_data	create_strata_data
-generate_alluvium_polygons	generate_alluvium_polygons
-layout_strata_positions	layout_strata_positions
-normalize_alluvium_sizes	normalize_alluvium_sizes
-plot_alluvial_from_data	plot_alluvial_from_data
-plot_flow_paths	plot_flow_paths

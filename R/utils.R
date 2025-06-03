@@ -1,3 +1,5 @@
+library(purrr)
+library(dplyr)
 #' Layout Strata Positions with User-Defined Order
 #'
 #' This function computes the positions for strata based on a user-provided order.
