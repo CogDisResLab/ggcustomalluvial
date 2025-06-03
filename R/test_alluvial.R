@@ -430,4 +430,3 @@ test_that("layout_strata_positions correctly handles layers with few strata", {
   expect_equal(lipidomics_strata$group[1], "RegionB")
   expect_equal(lipidomics_strata$group[2], "RegionA")
 })
-omics_order_for_plot <- c("Genomics", "Transcriptomics", "Proteomics", "Metabolomics", "Lipidomics")
