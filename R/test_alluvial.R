@@ -331,7 +331,7 @@ test_that("layout_strata_positions creates position columns", {
     distinct(Layer, group) # Ensure uniqueness here as well
   result <- layout_strata_positions(all_strata_test, strata_order = sample_strata_order)
   result_adjacent <- result |> group_by(Layer) |> as.data.frame()
-  result_adjacent <- result |> group_split(Layer) |> map(function(X) test_position_adjacency(X, 'ymin', 'ymax')) |> map(function(X) expect_true(all(X)))
+  result_adjacent <- result |> group_split(Layer) |> purrr::map(function(X) test_position_adjacency(X, 'ymin', 'ymax')) |> map(function(X) expect_true(all(X)))
   expect_true(all(c("xmin", "xmax", "ymin", "ymax", "Layer_Pos") %in% names(result)))
   expect_equal(nrow(result), nrow(unique(all_strata_test[, c("group", "Layer")])))
   expect_false(any(is.na(result$xmin)))

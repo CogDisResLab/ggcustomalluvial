@@ -299,7 +299,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
   flow_data <- flow_data |>
     group_by(OmicLayer_from, stratum_from) |> 
     group_split() |> 
-    map(~ {
+    purrr::map(~ {
       .x <- .x |>
         mutate(startdrug_n_fac = as.integer(as.factor(Drug)) - 1)
 
@@ -322,7 +322,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
   flow_data <- flow_data |>
     group_by(OmicLayer_to, stratum_to) |> 
     group_split() |> 
-    map(~ {
+    purrr::map(~ {
       .x <- .x |>
         mutate(enddrug_n_fac = as.integer(as.factor(Drug)) - 1)
     }) |>
@@ -331,7 +331,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
   flow_data <- flow_data |>
     group_by(OmicLayer_to, stratum_to) |> 
     group_split() |> 
-    map(~ {
+    purrr::map(~ {
       .x |>
         mutate(
           enddrug_ymin = start_ymin + ((start_ymax - start_ymin)/(max(enddrug_n_fac)+1)) * enddrug_n_fac,
