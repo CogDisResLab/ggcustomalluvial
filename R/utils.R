@@ -290,7 +290,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
   flow_data <- flow_data |>
     left_join(
       strata_positions |>
-        select(group, Layer, end_x = xmin) |>
+        select(group, Layer, end_x = xmin, end_ymin = ymin, end_ymax = ymax) |>
         rename(stratum_to = group, OmicLayer_to = Layer),
       by = c("stratum_to", "OmicLayer_to")
     )
