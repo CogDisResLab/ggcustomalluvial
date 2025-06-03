@@ -334,8 +334,8 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
     purrr::map(~ {
       .x |>
         mutate(
-          enddrug_ymin = start_ymin + ((start_ymax - start_ymin)/(max(enddrug_n_fac)+1)) * enddrug_n_fac,
-          enddrug_ymax = enddrug_ymin + ((start_ymax - start_ymin)/(max(enddrug_n_fac)+1)) * relative_size
+          enddrug_ymin = end_ymin + ((end_ymax - end_ymin)/(max(enddrug_n_fac)+1)) * enddrug_n_fac,
+          enddrug_ymax = enddrug_ymin + ((end_ymax - end_ymin)/(max(enddrug_n_fac)+1)) * relative_size
         )
     }) |>
     bind_rows() |>
