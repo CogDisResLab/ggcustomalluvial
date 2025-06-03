@@ -1,0 +1,14 @@
+Package: ggcustomalluvial
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person("John", "Vergis", , "john.vergis@rockets.utoledo.edu", role = c("aut", "cre"))
+Author: John Vergis <john.vergis@rockets.utoledo.edu>
+Maintainer: John Vergis <john.vergis@rockets.utoledo.edu>
+Description: What the package does (one paragraph).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: tidyverse, testthat, bezier, purrr
+Built: R 4.5.0; ; 2025-06-03 15:00:54 UTC; unix

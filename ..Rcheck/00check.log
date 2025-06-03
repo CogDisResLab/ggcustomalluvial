@@ -1,0 +1,480 @@
+* using log directory ‘/Users/jvergis/Documents/work/ggcustomalluvial/..Rcheck’
+* using R version 4.5.0 (2025-04-11)
+* using platform: aarch64-apple-darwin20
+* R was compiled by
+    Apple clang version 14.0.0 (clang-1400.0.29.202)
+    GNU Fortran (GCC) 14.2.0
+* running under: macOS Sequoia 15.4.1
+* using session charset: UTF-8
+* checking for file ‘./DESCRIPTION’ ... OK
+* this is package ‘ggcustomalluvial’ version ‘0.0.0.9000’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .Rprofile
+  .gitignore
+  ..Rcheck
+  .git
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘ggcustomalluvial’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... NOTE
+Checking should be performed on sources prepared by ‘R CMD build’.
+  Missing dependency on R >= 4.1.0 because package code uses the pipe
+  |> or function shorthand \(...) syntax added in R 4.1.0.
+  File(s) using such syntax:
+    ‘test_alluvial.R’ ‘utils.R’
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... WARNING
+Found the following directory with the name of a check directory:
+  ./..Rcheck
+Most likely, these were included erroneously.
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking dependencies in R code ... WARNING
+'library' or 'require' calls not declared from:
+  ‘RColorBrewer’ ‘bezier’ ‘dplyr’ ‘ggplot2’ ‘tidyr’
+'library' or 'require' calls in package code:
+  ‘RColorBrewer’ ‘bezier’ ‘dplyr’ ‘ggplot2’ ‘tidyr’
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+Namespaces in Imports field not imported from:
+  ‘purrr’ ‘testthat’ ‘tidyverse’
+  All declared Imports should be used.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+apply_split_positions_by_size: no visible global function definition
+  for ‘%>%’
+apply_split_positions_by_size: no visible global function definition
+  for ‘filter’
+apply_split_positions_by_size: no visible binding for global variable
+  ‘OmicLayer_to’
+apply_split_positions_by_size: no visible binding for global variable
+  ‘stratum_from’
+apply_split_positions_by_size: no visible binding for global variable
+  ‘OmicLayer_from’
+apply_split_positions_by_size: no visible binding for global variable
+  ‘stratum_to’
+generate_alluvium_polygons: no visible global function definition for
+  ‘%>%’
+generate_alluvium_polygons: no visible global function definition for
+  ‘mutate’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘stratum_from’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘OmicLayer_from’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘stratum_to’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘OmicLayer_to’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘Drug’
+generate_alluvium_polygons: no visible global function definition for
+  ‘select’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘start_x’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘end_x’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘start_ymin’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘start_ymax’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘end_ymin’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘end_ymax’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘group_id’
+generate_alluvium_polygons: no visible binding for global variable
+  ‘fill’
+generate_alluvium_polygons : generate_polygon: no visible global
+  function definition for ‘bind_rows’
+generate_alluvium_polygons : generate_polygon: no visible global
+  function definition for ‘%>%’
+generate_alluvium_polygons : generate_polygon: no visible global
+  function definition for ‘arrange’
+generate_alluvium_polygons : generate_polygon: no visible global
+  function definition for ‘desc’
+generate_alluvium_polygons : generate_polygon: no visible binding for
+  global variable ‘x’
+generate_alluvium_polygons : generate_polygon: no visible global
+  function definition for ‘select’
+generate_alluvium_polygons : generate_polygon: no visible binding for
+  global variable ‘y’
+generate_alluvium_polygons : generate_polygon: no visible binding for
+  global variable ‘group’
+generate_alluvium_polygons : generate_polygon: no visible binding for
+  global variable ‘fill’
+generate_alluvium_polygons: no visible global function definition for
+  ‘rowwise’
+generate_alluvium_polygons: no visible global function definition for
+  ‘do’
+generate_alluvium_polygons: no visible binding for global variable ‘.’
+generate_alluvium_polygons: no visible global function definition for
+  ‘ungroup’
+generate_input_for_flow_function: no visible global function definition
+  for ‘%>%’
+generate_input_for_flow_function: no visible global function definition
+  for ‘mutate’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘OmicLayer_from’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘OmicLayer_to’
+generate_input_for_flow_function: no visible global function definition
+  for ‘filter’
+generate_input_for_flow_function: no visible global function definition
+  for ‘select’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘stratum_from’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘stratum_to’
+generate_input_for_flow_function: no visible global function definition
+  for ‘head’
+generate_input_for_flow_function: no visible global function definition
+  for ‘unite’
+generate_input_for_flow_function: no visible global function definition
+  for ‘pull’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘flow’
+generate_input_for_flow_function: no visible global function definition
+  for ‘distinct’
+generate_input_for_flow_function: no visible global function definition
+  for ‘bind_rows’
+generate_input_for_flow_function: no visible global function definition
+  for ‘group_by’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘Drug’
+generate_input_for_flow_function: no visible global function definition
+  for ‘group_split’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘size’
+generate_input_for_flow_function : <anonymous>: no visible global
+  function definition for ‘%>%’
+generate_input_for_flow_function : <anonymous>: no visible global
+  function definition for ‘filter’
+generate_input_for_flow_function : <anonymous>: no visible binding for
+  global variable ‘Layer’
+generate_input_for_flow_function : <anonymous>: no visible global
+  function definition for ‘pull’
+generate_input_for_flow_function : <anonymous>: no visible binding for
+  global variable ‘xmax’
+generate_input_for_flow_function : <anonymous>: no visible global
+  function definition for ‘first’
+generate_input_for_flow_function : <anonymous>: no visible binding for
+  global variable ‘xmin’
+generate_input_for_flow_function: no visible binding for global
+  variable ‘.’
+generate_input_for_flow_function : <anonymous>: no visible binding for
+  global variable ‘.’
+generate_input_for_flow_function : <anonymous>: no visible binding for
+  global variable ‘ymin’
+generate_input_for_flow_function: no visible global function definition
+  for ‘first’
+generate_input_for_flow_function : <anonymous>: no visible binding for
+  global variable ‘ymax’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘%>%’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘mutate’
+generate_input_for_flows_within_function: no visible binding for global
+  variable ‘OmicLayer_from’
+generate_input_for_flows_within_function: no visible binding for global
+  variable ‘OmicLayer_to’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘filter’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘select’
+generate_input_for_flows_within_function: no visible binding for global
+  variable ‘stratum_from’
+generate_input_for_flows_within_function: no visible binding for global
+  variable ‘stratum_to’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘head’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘unite’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘pull’
+generate_input_for_flows_within_function: no visible binding for global
+  variable ‘flow’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘distinct’
+generate_input_for_flows_within_function: no visible global function
+  definition for ‘bind_rows’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘%>%’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘mutate’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘OmicLayer_from’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘OmicLayer_to’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘filter’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘select’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘stratum_from’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘stratum_to’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘head’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘unite’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘pull’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘flow’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘distinct’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘bind_rows’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘Drug’
+generate_input_for_polygons_function: no visible global function
+  definition for ‘rename’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘start_layer_num’
+generate_input_for_polygons_function: no visible binding for global
+  variable ‘end_layer_num’
+layout_flows_within_strata: no visible global function definition for
+  ‘mutate’
+layout_flows_within_strata: no visible binding for global variable
+  ‘size’
+layout_flows_within_strata: no visible global function definition for
+  ‘left_join’
+layout_flows_within_strata: no visible global function definition for
+  ‘rename’
+layout_flows_within_strata: no visible global function definition for
+  ‘select’
+layout_flows_within_strata: no visible binding for global variable
+  ‘group’
+layout_flows_within_strata: no visible binding for global variable
+  ‘Layer’
+layout_flows_within_strata: no visible binding for global variable
+  ‘xmax’
+layout_flows_within_strata: no visible binding for global variable
+  ‘ymin’
+layout_flows_within_strata: no visible binding for global variable
+  ‘ymax’
+layout_flows_within_strata: no visible binding for global variable
+  ‘xmin’
+layout_flows_within_strata: no visible global function definition for
+  ‘bind_rows’
+layout_flows_within_strata: no visible global function definition for
+  ‘map’
+layout_flows_within_strata: no visible global function definition for
+  ‘group_split’
+layout_flows_within_strata: no visible global function definition for
+  ‘group_by’
+layout_flows_within_strata: no visible binding for global variable
+  ‘OmicLayer_from’
+layout_flows_within_strata: no visible binding for global variable
+  ‘stratum_from’
+layout_flows_within_strata: no visible binding for global variable
+  ‘startdrug_ymin’
+layout_flows_within_strata: no visible binding for global variable
+  ‘startdrug_ymax’
+layout_flows_within_strata: no visible binding for global variable
+  ‘OmicLayer_to’
+layout_flows_within_strata: no visible binding for global variable
+  ‘stratum_to’
+layout_flows_within_strata: no visible binding for global variable
+  ‘enddrug_ymin’
+layout_flows_within_strata: no visible binding for global variable
+  ‘enddrug_ymax’
+layout_strata_positions: no visible global function definition for
+  ‘%>%’
+layout_strata_positions: no visible global function definition for
+  ‘filter’
+layout_strata_positions: no visible binding for global variable ‘Layer’
+layout_strata_positions: no visible global function definition for
+  ‘mutate’
+layout_strata_positions: no visible binding for global variable ‘group’
+layout_strata_positions: no visible global function definition for
+  ‘select’
+layout_strata_positions: no visible global function definition for
+  ‘any_of’
+layout_strata_positions: no visible global function definition for
+  ‘left_join’
+layout_strata_positions: no visible global function definition for
+  ‘bind_rows’
+layout_strata_positions: no visible binding for global variable ‘xmin’
+layout_strata_positions: no visible binding for global variable ‘xmax’
+layout_strata_positions: no visible binding for global variable
+  ‘Layer_Pos’
+plot_alluvial_from_data: no visible global function definition for
+  ‘%>%’
+plot_alluvial_from_data: no visible global function definition for
+  ‘mutate’
+plot_alluvial_from_data: no visible binding for global variable
+  ‘OmicLayer_from’
+plot_alluvial_from_data: no visible binding for global variable
+  ‘OmicLayer_to’
+plot_alluvial_from_data: no visible global function definition for
+  ‘filter’
+plot_alluvial_from_data: no visible global function definition for
+  ‘select’
+plot_alluvial_from_data: no visible binding for global variable
+  ‘stratum_from’
+plot_alluvial_from_data: no visible binding for global variable
+  ‘stratum_to’
+plot_alluvial_from_data: no visible global function definition for
+  ‘head’
+plot_alluvial_from_data: no visible global function definition for
+  ‘unite’
+plot_alluvial_from_data: no visible global function definition for
+  ‘pull’
+plot_alluvial_from_data: no visible binding for global variable ‘flow’
+plot_alluvial_from_data: no visible global function definition for
+  ‘distinct’
+plot_alluvial_from_data: no visible global function definition for
+  ‘bind_rows’
+plot_alluvial_from_data: no visible global function definition for
+  ‘setNames’
+plot_alluvial_from_data: no visible global function definition for
+  ‘brewer.pal’
+plot_alluvial_from_data: no visible binding for global variable ‘xmax’
+plot_alluvial_from_data: no visible binding for global variable ‘xmin’
+plot_alluvial_from_data: no visible global function definition for
+  ‘ggplot’
+plot_alluvial_from_data: no visible global function definition for
+  ‘aes’
+plot_alluvial_from_data: no visible binding for global variable ‘x’
+plot_alluvial_from_data: no visible binding for global variable ‘y’
+plot_alluvial_from_data: no visible binding for global variable ‘group’
+plot_alluvial_from_data: no visible binding for global variable ‘fill’
+plot_alluvial_from_data: no visible global function definition for
+  ‘geom_polygon’
+plot_alluvial_from_data: no visible global function definition for
+  ‘geom_rect’
+plot_alluvial_from_data: no visible binding for global variable ‘ymin’
+plot_alluvial_from_data: no visible binding for global variable ‘ymax’
+plot_alluvial_from_data: no visible global function definition for
+  ‘geom_text’
+plot_alluvial_from_data: no visible binding for global variable
+  ‘Layer_Pos’
+plot_alluvial_from_data: no visible global function definition for
+  ‘theme_void’
+plot_alluvial_from_data: no visible global function definition for
+  ‘theme’
+plot_alluvial_from_data: no visible global function definition for
+  ‘element_text’
+plot_alluvial_from_data: no visible global function definition for
+  ‘margin’
+plot_alluvial_from_data: no visible global function definition for
+  ‘element_blank’
+plot_alluvial_from_data: no visible global function definition for
+  ‘labs’
+plot_alluvial_from_data: no visible global function definition for
+  ‘scale_x_continuous’
+plot_alluvial_from_data: no visible global function definition for
+  ‘scale_fill_manual’
+plot_flow_paths: no visible global function definition for ‘ggplot’
+plot_flow_paths: no visible global function definition for ‘aes’
+plot_flow_paths: no visible global function definition for ‘sym’
+plot_flow_paths: no visible binding for global variable
+  ‘OmicLayer_from’
+plot_flow_paths: no visible binding for global variable ‘OmicLayer_to’
+plot_flow_paths: no visible global function definition for
+  ‘geom_segment’
+plot_flow_paths: no visible binding for global variable ‘end_x’
+plot_flow_paths: no visible binding for global variable ‘flow_y_center’
+plot_flow_paths: no visible global function definition for
+  ‘scale_size_continuous’
+plot_flow_paths: no visible global function definition for
+  ‘theme_minimal’
+plot_flow_paths: no visible global function definition for ‘theme’
+plot_flow_paths: no visible global function definition for ‘labs’
+plot_flow_paths: no visible global function definition for ‘facet_wrap’
+split_positions_by_size: no visible global function definition for
+  ‘%>%’
+split_positions_by_size: no visible global function definition for
+  ‘mutate’
+split_positions_by_size: no visible global function definition for
+  ‘row_number’
+split_positions_by_size: no visible global function definition for
+  ‘group_by’
+split_positions_by_size: no visible global function definition for
+  ‘across’
+split_positions_by_size: no visible global function definition for
+  ‘all_of’
+split_positions_by_size: no visible global function definition for
+  ‘arrange’
+split_positions_by_size: no visible global function definition for
+  ‘ungroup’
+split_positions_by_size: no visible global function definition for
+  ‘group_split’
+test_layout_strata: no visible global function definition for ‘%>%’
+test_layout_strata: no visible global function definition for
+  ‘bind_rows’
+test_layout_strata: no visible global function definition for ‘select’
+test_layout_strata: no visible binding for global variable
+  ‘OmicLayer_from’
+test_layout_strata: no visible binding for global variable
+  ‘stratum_from’
+test_layout_strata: no visible global function definition for
+  ‘distinct’
+test_layout_strata: no visible binding for global variable
+  ‘OmicLayer_to’
+test_layout_strata: no visible binding for global variable ‘stratum_to’
+test_layout_strata: no visible global function definition for ‘mutate’
+test_layout_strata: no visible binding for global variable ‘Layer’
+test_layout_strata: no visible global function definition for ‘filter’
+test_layout_strata: no visible binding for global variable ‘group’
+test_split_positions_by_size: no visible global function definition for
+  ‘%>%’
+test_split_positions_by_size: no visible global function definition for
+  ‘group_by’
+test_split_positions_by_size: no visible binding for global variable
+  ‘OmicLayer_from’
+test_split_positions_by_size: no visible binding for global variable
+  ‘stratum_from’
+test_split_positions_by_size: no visible binding for global variable
+  ‘Drug’
+test_split_positions_by_size: no visible global function definition for
+  ‘group_split’
+Undefined global functions or variables:
+  %>% . Drug Layer Layer_Pos OmicLayer_from OmicLayer_to across aes
+  all_of any_of arrange bind_rows brewer.pal desc distinct do
+  element_blank element_text end_layer_num end_x end_ymax end_ymin
+  enddrug_ymax enddrug_ymin facet_wrap fill filter first flow
+  flow_y_center geom_polygon geom_rect geom_segment geom_text ggplot
+  group group_by group_id group_split head labs left_join map margin
+  mutate pull rename row_number rowwise scale_fill_manual
+  scale_size_continuous scale_x_continuous select setNames size
+  start_layer_num start_x start_ymax start_ymin startdrug_ymax
+  startdrug_ymin stratum_from stratum_to sym theme theme_minimal
+  theme_void ungroup unite x xmax xmin y ymax ymin
+Consider adding
+  importFrom("stats", "filter", "setNames")
+  importFrom("utils", "head")
+to your NAMESPACE file.
+* checking for missing documentation entries ... WARNING
+Undocumented code objects:
+  ‘create_strata_data’ ‘layout_strata_positions’
+  ‘normalize_alluvium_sizes’ ‘plot_alluvial_from_data’
+All user-level objects in a package should have documentation entries.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking examples ... NONE
+* checking PDF version of manual ... OK
+* DONE
+Status: 3 WARNINGs, 3 NOTEs
