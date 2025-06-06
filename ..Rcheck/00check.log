@@ -49,20 +49,17 @@ Most likely, these were included erroneously.
 * checking whether the namespace can be unloaded cleanly ... OK
 * checking dependencies in R code ... WARNING
 'library' or 'require' calls not declared from:
-  ‘RColorBrewer’ ‘bezier’ ‘dplyr’ ‘ggplot2’ ‘tidyr’
+  ‘RColorBrewer’ ‘bezier’ ‘dplyr’ ‘ggplot2’ ‘tidyr’ ‘viridis’
 'library' or 'require' calls in package code:
-  ‘RColorBrewer’ ‘bezier’ ‘dplyr’ ‘ggplot2’ ‘tidyr’
+  ‘RColorBrewer’ ‘bezier’ ‘dplyr’ ‘ggplot2’ ‘tidyr’ ‘viridis’
   Please use :: or requireNamespace() instead.
   See section 'Suggested packages' in the 'Writing R Extensions' manual.
-Namespaces in Imports field not imported from:
-  ‘purrr’ ‘testthat’ ‘tidyverse’
+Namespace in Imports field not imported from: ‘testthat’
   All declared Imports should be used.
 * checking S3 generic/method consistency ... OK
 * checking replacement functions ... OK
 * checking foreign function calls ... OK
 * checking R code for possible problems ... NOTE
-apply_split_positions_by_size: no visible global function definition
-  for ‘%>%’
 apply_split_positions_by_size: no visible global function definition
   for ‘filter’
 apply_split_positions_by_size: no visible binding for global variable
@@ -73,8 +70,6 @@ apply_split_positions_by_size: no visible binding for global variable
   ‘OmicLayer_from’
 apply_split_positions_by_size: no visible binding for global variable
   ‘stratum_to’
-generate_alluvium_polygons: no visible global function definition for
-  ‘%>%’
 generate_alluvium_polygons: no visible global function definition for
   ‘mutate’
 generate_alluvium_polygons: no visible binding for global variable
@@ -108,8 +103,6 @@ generate_alluvium_polygons: no visible binding for global variable
 generate_alluvium_polygons : generate_polygon: no visible global
   function definition for ‘bind_rows’
 generate_alluvium_polygons : generate_polygon: no visible global
-  function definition for ‘%>%’
-generate_alluvium_polygons : generate_polygon: no visible global
   function definition for ‘arrange’
 generate_alluvium_polygons : generate_polygon: no visible global
   function definition for ‘desc’
@@ -130,8 +123,6 @@ generate_alluvium_polygons: no visible global function definition for
 generate_alluvium_polygons: no visible binding for global variable ‘.’
 generate_alluvium_polygons: no visible global function definition for
   ‘ungroup’
-generate_input_for_flow_function: no visible global function definition
-  for ‘%>%’
 generate_input_for_flow_function: no visible global function definition
   for ‘mutate’
 generate_input_for_flow_function: no visible binding for global
@@ -167,8 +158,6 @@ generate_input_for_flow_function: no visible global function definition
 generate_input_for_flow_function: no visible binding for global
   variable ‘size’
 generate_input_for_flow_function : <anonymous>: no visible global
-  function definition for ‘%>%’
-generate_input_for_flow_function : <anonymous>: no visible global
   function definition for ‘filter’
 generate_input_for_flow_function : <anonymous>: no visible binding for
   global variable ‘Layer’
@@ -190,8 +179,6 @@ generate_input_for_flow_function: no visible global function definition
   for ‘first’
 generate_input_for_flow_function : <anonymous>: no visible binding for
   global variable ‘ymax’
-generate_input_for_flows_within_function: no visible global function
-  definition for ‘%>%’
 generate_input_for_flows_within_function: no visible global function
   definition for ‘mutate’
 generate_input_for_flows_within_function: no visible binding for global
@@ -218,8 +205,6 @@ generate_input_for_flows_within_function: no visible global function
   definition for ‘distinct’
 generate_input_for_flows_within_function: no visible global function
   definition for ‘bind_rows’
-generate_input_for_polygons_function: no visible global function
-  definition for ‘%>%’
 generate_input_for_polygons_function: no visible global function
   definition for ‘mutate’
 generate_input_for_polygons_function: no visible binding for global
@@ -279,8 +264,6 @@ layout_flows_within_strata: no visible binding for global variable
 layout_flows_within_strata: no visible global function definition for
   ‘bind_rows’
 layout_flows_within_strata: no visible global function definition for
-  ‘map’
-layout_flows_within_strata: no visible global function definition for
   ‘group_split’
 layout_flows_within_strata: no visible global function definition for
   ‘group_by’
@@ -296,12 +279,6 @@ layout_flows_within_strata: no visible binding for global variable
   ‘OmicLayer_to’
 layout_flows_within_strata: no visible binding for global variable
   ‘stratum_to’
-layout_flows_within_strata: no visible binding for global variable
-  ‘enddrug_ymin’
-layout_flows_within_strata: no visible binding for global variable
-  ‘enddrug_ymax’
-layout_strata_positions: no visible global function definition for
-  ‘%>%’
 layout_strata_positions: no visible global function definition for
   ‘filter’
 layout_strata_positions: no visible binding for global variable ‘Layer’
@@ -320,8 +297,6 @@ layout_strata_positions: no visible binding for global variable ‘xmin’
 layout_strata_positions: no visible binding for global variable ‘xmax’
 layout_strata_positions: no visible binding for global variable
   ‘Layer_Pos’
-plot_alluvial_from_data: no visible global function definition for
-  ‘%>%’
 plot_alluvial_from_data: no visible global function definition for
   ‘mutate’
 plot_alluvial_from_data: no visible binding for global variable
@@ -347,10 +322,6 @@ plot_alluvial_from_data: no visible global function definition for
   ‘distinct’
 plot_alluvial_from_data: no visible global function definition for
   ‘bind_rows’
-plot_alluvial_from_data: no visible global function definition for
-  ‘setNames’
-plot_alluvial_from_data: no visible global function definition for
-  ‘brewer.pal’
 plot_alluvial_from_data: no visible binding for global variable ‘xmax’
 plot_alluvial_from_data: no visible binding for global variable ‘xmin’
 plot_alluvial_from_data: no visible global function definition for
@@ -386,7 +357,7 @@ plot_alluvial_from_data: no visible global function definition for
 plot_alluvial_from_data: no visible global function definition for
   ‘scale_x_continuous’
 plot_alluvial_from_data: no visible global function definition for
-  ‘scale_fill_manual’
+  ‘scale_fill_viridis_d’
 plot_flow_paths: no visible global function definition for ‘ggplot’
 plot_flow_paths: no visible global function definition for ‘aes’
 plot_flow_paths: no visible global function definition for ‘sym’
@@ -405,8 +376,6 @@ plot_flow_paths: no visible global function definition for ‘theme’
 plot_flow_paths: no visible global function definition for ‘labs’
 plot_flow_paths: no visible global function definition for ‘facet_wrap’
 split_positions_by_size: no visible global function definition for
-  ‘%>%’
-split_positions_by_size: no visible global function definition for
   ‘mutate’
 split_positions_by_size: no visible global function definition for
   ‘row_number’
@@ -422,7 +391,6 @@ split_positions_by_size: no visible global function definition for
   ‘ungroup’
 split_positions_by_size: no visible global function definition for
   ‘group_split’
-test_layout_strata: no visible global function definition for ‘%>%’
 test_layout_strata: no visible global function definition for
   ‘bind_rows’
 test_layout_strata: no visible global function definition for ‘select’
@@ -440,8 +408,6 @@ test_layout_strata: no visible binding for global variable ‘Layer’
 test_layout_strata: no visible global function definition for ‘filter’
 test_layout_strata: no visible binding for global variable ‘group’
 test_split_positions_by_size: no visible global function definition for
-  ‘%>%’
-test_split_positions_by_size: no visible global function definition for
   ‘group_by’
 test_split_positions_by_size: no visible binding for global variable
   ‘OmicLayer_from’
@@ -452,19 +418,18 @@ test_split_positions_by_size: no visible binding for global variable
 test_split_positions_by_size: no visible global function definition for
   ‘group_split’
 Undefined global functions or variables:
-  %>% . Drug Layer Layer_Pos OmicLayer_from OmicLayer_to across aes
-  all_of any_of arrange bind_rows brewer.pal desc distinct do
-  element_blank element_text end_layer_num end_x end_ymax end_ymin
-  enddrug_ymax enddrug_ymin facet_wrap fill filter first flow
-  flow_y_center geom_polygon geom_rect geom_segment geom_text ggplot
-  group group_by group_id group_split head labs left_join map margin
-  mutate pull rename row_number rowwise scale_fill_manual
-  scale_size_continuous scale_x_continuous select setNames size
-  start_layer_num start_x start_ymax start_ymin startdrug_ymax
-  startdrug_ymin stratum_from stratum_to sym theme theme_minimal
-  theme_void ungroup unite x xmax xmin y ymax ymin
+  . Drug Layer Layer_Pos OmicLayer_from OmicLayer_to across aes all_of
+  any_of arrange bind_rows desc distinct do element_blank element_text
+  end_layer_num end_x end_ymax end_ymin facet_wrap fill filter first
+  flow flow_y_center geom_polygon geom_rect geom_segment geom_text
+  ggplot group group_by group_id group_split head labs left_join margin
+  mutate pull rename row_number rowwise scale_fill_viridis_d
+  scale_size_continuous scale_x_continuous select size start_layer_num
+  start_x start_ymax start_ymin startdrug_ymax startdrug_ymin
+  stratum_from stratum_to sym theme theme_minimal theme_void ungroup
+  unite x xmax xmin y ymax ymin
 Consider adding
-  importFrom("stats", "filter", "setNames")
+  importFrom("stats", "filter")
   importFrom("utils", "head")
 to your NAMESPACE file.
 * checking for missing documentation entries ... WARNING

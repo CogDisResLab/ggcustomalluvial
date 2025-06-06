@@ -10,5 +10,5 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Imports: tidyverse, testthat, bezier, purrr
-Built: R 4.5.0; ; 2025-06-03 15:00:54 UTC; unix
+Imports: tidyverse, testthat, bezier, purrr, viridis
+Built: R 4.5.0; ; 2025-06-06 23:40:15 UTC; unix

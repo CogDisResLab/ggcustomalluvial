@@ -14,5 +14,6 @@ Imports:
     tidyverse,
     testthat,
     bezier,
-    purrr
+    purrr,
+    viridis
 

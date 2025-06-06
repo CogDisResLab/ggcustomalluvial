@@ -319,27 +319,68 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
     mutate(start_ymin = startdrug_ymin, start_ymax = startdrug_ymax)
 
   # End positions
-  flow_data <- flow_data |>
-    group_by(OmicLayer_to, stratum_to) |> 
-    group_split() |> 
-    purrr::map(~ {
-      .x <- .x |>
-        mutate(enddrug_n_fac = as.integer(as.factor(Drug)) - 1)
-    }) |>
-    bind_rows()
+flow_data <- flow_data |>
+  group_by(OmicLayer_to, stratum_to, stratum_from) |> # Group by OmicLayer_to, stratum_to, AND stratum_from
+  group_split() |>
+  purrr::map(~ {
+    .x <- .x |>
+      mutate(enddrug_n_fac = as.integer(as.factor(Drug)) - 1) # Factor for Drug within this stratum_from block
 
-  flow_data <- flow_data |>
-    group_by(OmicLayer_to, stratum_to) |> 
-    group_split() |> 
-    purrr::map(~ {
-      .x |>
-        mutate(
-          enddrug_ymin = end_ymin + ((end_ymax - end_ymin)/(max(enddrug_n_fac)+1)) * enddrug_n_fac,
-          enddrug_ymax = enddrug_ymin + ((end_ymax - end_ymin)/(max(enddrug_n_fac)+1)) * relative_size
-        )
-    }) |>
-    bind_rows() |>
-    mutate(end_ymin = enddrug_ymin, end_ymax = enddrug_ymax)
+    # Calculate stacking within each stratum_from block
+    block_total_height <- sum(.x$relative_size) # Total relative size for this stratum_from block
+    
+    .x <- .x |>
+      arrange(enddrug_n_fac) |> # Arrange by drug within the stratum_from block
+      mutate(
+        scaled_height_within_stratum = relative_size / block_total_height, # Relative height within its stratum_from block
+        end_block_ymin = c(0, head(cumsum(scaled_height_within_stratum), -1)), # Ymin relative to start of its stratum_from block
+        end_block_ymax = end_block_ymin + scaled_height_within_stratum # Ymax relative to start of its stratum_from block
+      )
+    return(.x)
+  }) |>
+  bind_rows()
+
+# Now, stack the stratum_from blocks within OmicLayer_to, stratum_to
+flow_data <- flow_data |>
+  group_by(OmicLayer_to, stratum_to) |>
+  group_split() |>
+  purrr::map(~ {
+    # Get unique stratum_from identifiers and their total relative sizes
+    stratum_from_summary <- .x |>
+      group_by(stratum_from) |>
+      summarise(
+        stratum_from_relative_size_sum = sum(relative_size),
+        # Assuming all flows to this end stratum have the same overall end_ymin/ymax
+        stratum_from_overall_ymin = first(end_ymin),
+        stratum_from_overall_ymax = first(end_ymax)
+      ) |>
+      ungroup() |>
+      mutate(stratum_from_n_fac = as.integer(as.factor(stratum_from)) - 1) |> # Factor for stratum_from ordering
+      arrange(stratum_from_n_fac) # Arrange stratum_from blocks
+
+    total_height_of_dest_stratum <- .x$end_ymax[1] - .x$end_ymin[1]
+    total_relative_size_of_dest_stratum <- sum(stratum_from_summary$stratum_from_relative_size_sum)
+
+    stratum_from_summary <- stratum_from_summary |>
+      mutate(
+        scaled_height_of_stratum_block = stratum_from_relative_size_sum / total_relative_size_of_dest_stratum * total_height_of_dest_stratum,
+        stratum_from_base_ymin = .x$end_ymin[1] + c(0, head(cumsum(scaled_height_of_stratum_block), -1))
+      )
+
+    # Join the calculated base y-min for each stratum_from block back to the main data
+    .x <- .x |>
+      left_join(
+        stratum_from_summary |> select(stratum_from, stratum_from_base_ymin, scaled_height_of_stratum_block),
+        by = "stratum_from"
+      ) |>
+      mutate(
+        # Calculate final end_ymin and end_ymax by adding the block's base Y to its relative Y within the block
+        end_ymin = stratum_from_base_ymin + end_block_ymin * scaled_height_of_stratum_block,
+        end_ymax = stratum_from_base_ymin + end_block_ymax * scaled_height_of_stratum_block
+      )
+    return(.x)
+  }) |>
+  bind_rows()
 
   return(flow_data)
 }
@@ -377,11 +418,12 @@ plot_flow_paths <- function(data, x_col = "start_x", y_col = "flow_y_center", wi
 #'                     specifying the desired order of strata within each layer.
 #' @return A ggplot object representing the alluvial plot.
 #' @export
-plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL, title=NULL) {
+plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL, title = NULL) {
   library(dplyr)
   library(ggplot2)
-  library(RColorBrewer)
+  library(RColorBrewer) # Still loaded, but not directly used for drug_colors here
   library(tidyr)
+  library(viridis) # Load the viridis library for scale_fill_viridis_d
 
   if (is.null(omics_order)) {
     stop("Error: The 'omics_order' argument must be provided.")
@@ -429,9 +471,13 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
 
   # Generate ribbon geometry
   ribbon_data <- generate_alluvium_polygons(flow_data, strata_positions, curve_range = 0.0005)
-  drug_colors <- setNames(brewer.pal(length(unique(as.vector(ribbon_data$fill))), "Set2"), unique(as.vector(ribbon_data$fill)))
-  strata_positions <- strata_positions %>% mutate(xmid=(xmax+xmin)/2)
+
+  # Ensure the 'fill' variable is a factor for discrete palettes like viridis_d
+  ribbon_data$fill <- as.factor(ribbon_data$fill)
+
+  strata_positions <- strata_positions %>% mutate(xmid = (xmax + xmin) / 2)
   omics_breaks <- unique(strata_positions$xmid)
+
   # Build the ggplot object
   final_plot <- ggplot(ribbon_data, aes(x = x, y = y, group = group, fill = fill)) +
     geom_polygon(color = NA, alpha = 0.6) +
@@ -446,17 +492,22 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
       aes(x = Layer_Pos, y = (ymin + ymax) / 2, label = group),
       size = 3, hjust = 0.5,
       inherit.aes = FALSE
-    ) + theme_void() + theme(
-    plot.title = element_text(hjust = 0.5),     # Centered title
-    axis.title.x = element_text(margin=margin(t=10), face="bold"),              # Show x-axis title
-    axis.text.x = element_text(),               # Show x-axis labels
-    axis.ticks.x = element_blank()              # Remove x-axis ticks
-  ) + labs(
-    title = title,
-    x = "Omics Layer"
-  ) +
+    ) +
+    theme_void() +
+    theme(
+      plot.title = element_text(hjust = 0.5), # Centered title
+      axis.title.x = element_text(margin = margin(t = 10), face = "bold"), # Show x-axis title
+      axis.text.x = element_text(), # Show x-axis labels
+      axis.ticks.x = element_blank(), # Remove x-axis ticks
+      # --- ADDED LINE FOR PLOT MARGIN ---
+      plot.margin = margin(t = 10, r = 30, b = 20, l = 10, unit = "pt") # Top, Right, Bottom, Left margins
+    ) +
+    labs(
+      title = title,
+      x = "Omics Layer"
+    ) +
     scale_x_continuous(breaks = omics_breaks, labels = omics_order) +
-    scale_fill_manual(name = "Drug", values = drug_colors, limits = levels(as.factor(ribbon_data$fill))) +
+    scale_fill_viridis_d(name = "Drug", option = "D", direction = 1) +
     theme(legend.position = "right") # Remove or set to "right" for debugging
 
   return(final_plot)
