@@ -273,11 +273,12 @@ apply_split_positions_by_size <- function(df, OmicLayer, stratum, end = FALSE) {
 }
 
 layout_flows_within_strata <- function(flow_data, strata_positions) {
-  # Relative sizes
   flow_data <- flow_data |>
     mutate(relative_size = size / max(size))
 
-  # Join start (from) positions — keep ymin/ymax
+  flow_data <- flow_data |>
+    mutate(Drug = as.factor(Drug))
+
   flow_data <- flow_data |>
     left_join(
       strata_positions |>
@@ -286,7 +287,6 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
       by = c("stratum_from", "OmicLayer_from")
     )
 
-  # Join end (to) positions — no need to pull ymin/ymax again
   flow_data <- flow_data |>
     left_join(
       strata_positions |>
@@ -295,13 +295,12 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
       by = c("stratum_to", "OmicLayer_to")
     )
 
-  # Start positions: stack flows
   flow_data <- flow_data |>
-    group_by(OmicLayer_from, stratum_from) |> 
-    group_split() |> 
+    group_by(OmicLayer_from, stratum_from) |>
+    group_split() |>
     purrr::map(~ {
       .x <- .x |>
-        mutate(startdrug_n_fac = as.integer(as.factor(Drug)) - 1)
+        mutate(startdrug_n_fac = as.integer(Drug))
 
       total_height <- .x$start_ymax[1] - .x$start_ymin[1]
       total_relative_size <- sum(.x$relative_size)
@@ -314,77 +313,69 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
           startdrug_ymax = startdrug_ymin + scaled_height
         )
       return(.x)
-    }) |> 
+    }) |>
     bind_rows() |>
     mutate(start_ymin = startdrug_ymin, start_ymax = startdrug_ymax)
 
-  # End positions
-flow_data <- flow_data |>
-  group_by(OmicLayer_to, stratum_to, stratum_from) |> # Group by OmicLayer_to, stratum_to, AND stratum_from
-  group_split() |>
-  purrr::map(~ {
-    .x <- .x |>
-      mutate(enddrug_n_fac = as.integer(as.factor(Drug)) - 1) # Factor for Drug within this stratum_from block
+  flow_data <- flow_data |>
+    group_by(OmicLayer_to, stratum_to, stratum_from) |>
+    group_split() |>
+    purrr::map(~ {
+      .x <- .x |>
+        mutate(enddrug_n_fac = as.integer(Drug))
 
-    # Calculate stacking within each stratum_from block
-    block_total_height <- sum(.x$relative_size) # Total relative size for this stratum_from block
-    
-    .x <- .x |>
-      arrange(enddrug_n_fac) |> # Arrange by drug within the stratum_from block
-      mutate(
-        scaled_height_within_stratum = relative_size / block_total_height, # Relative height within its stratum_from block
-        end_block_ymin = c(0, head(cumsum(scaled_height_within_stratum), -1)), # Ymin relative to start of its stratum_from block
-        end_block_ymax = end_block_ymin + scaled_height_within_stratum # Ymax relative to start of its stratum_from block
-      )
-    return(.x)
-  }) |>
-  bind_rows()
+      block_total_height <- sum(.x$relative_size)
 
-# Now, stack the stratum_from blocks within OmicLayer_to, stratum_to
-flow_data <- flow_data |>
-  group_by(OmicLayer_to, stratum_to) |>
-  group_split() |>
-  purrr::map(~ {
-    # Get unique stratum_from identifiers and their total relative sizes
-    stratum_from_summary <- .x |>
-      group_by(stratum_from) |>
-      summarise(
-        stratum_from_relative_size_sum = sum(relative_size),
-        # Assuming all flows to this end stratum have the same overall end_ymin/ymax
-        stratum_from_overall_ymin = first(end_ymin),
-        stratum_from_overall_ymax = first(end_ymax)
-      ) |>
-      ungroup() |>
-      mutate(stratum_from_n_fac = as.integer(as.factor(stratum_from)) - 1) |> # Factor for stratum_from ordering
-      arrange(stratum_from_n_fac) # Arrange stratum_from blocks
+      .x <- .x |>
+        arrange(enddrug_n_fac) |>
+        mutate(
+          scaled_height_within_stratum = relative_size / block_total_height,
+          end_block_ymin = c(0, head(cumsum(scaled_height_within_stratum), -1)),
+          end_block_ymax = end_block_ymin + scaled_height_within_stratum
+        )
+      return(.x)
+    }) |>
+    bind_rows()
 
-    total_height_of_dest_stratum <- .x$end_ymax[1] - .x$end_ymin[1]
-    total_relative_size_of_dest_stratum <- sum(stratum_from_summary$stratum_from_relative_size_sum)
+  flow_data <- flow_data |>
+    group_by(OmicLayer_to, stratum_to) |>
+    group_split() |>
+    purrr::map(~ {
+      stratum_from_summary <- .x |>
+        group_by(stratum_from) |>
+        summarise(
+          stratum_from_relative_size_sum = sum(relative_size),
+          stratum_from_overall_ymin = first(end_ymin),
+          stratum_from_overall_ymax = first(end_ymax)
+        ) |>
+        ungroup() |>
+        mutate(stratum_from_n_fac = as.integer(as.factor(stratum_from))) |>
+        arrange(stratum_from_n_fac)
 
-    stratum_from_summary <- stratum_from_summary |>
-      mutate(
-        scaled_height_of_stratum_block = stratum_from_relative_size_sum / total_relative_size_of_dest_stratum * total_height_of_dest_stratum,
-        stratum_from_base_ymin = .x$end_ymin[1] + c(0, head(cumsum(scaled_height_of_stratum_block), -1))
-      )
+      total_height_of_dest_stratum <- .x$end_ymax[1] - .x$end_ymin[1]
+      total_relative_size_of_dest_stratum <- sum(stratum_from_summary$stratum_from_relative_size_sum)
 
-    # Join the calculated base y-min for each stratum_from block back to the main data
-    .x <- .x |>
-      left_join(
-        stratum_from_summary |> select(stratum_from, stratum_from_base_ymin, scaled_height_of_stratum_block),
-        by = "stratum_from"
-      ) |>
-      mutate(
-        # Calculate final end_ymin and end_ymax by adding the block's base Y to its relative Y within the block
-        end_ymin = stratum_from_base_ymin + end_block_ymin * scaled_height_of_stratum_block,
-        end_ymax = stratum_from_base_ymin + end_block_ymax * scaled_height_of_stratum_block
-      )
-    return(.x)
-  }) |>
-  bind_rows()
+      stratum_from_summary <- stratum_from_summary |>
+        mutate(
+          scaled_height_of_stratum_block = stratum_from_relative_size_sum / total_relative_size_of_dest_stratum * total_height_of_dest_stratum,
+          stratum_from_base_ymin = .x$end_ymin[1] + c(0, head(cumsum(scaled_height_of_stratum_block), -1))
+        )
+
+      .x <- .x |>
+        left_join(
+          stratum_from_summary |> select(stratum_from, stratum_from_base_ymin, scaled_height_of_stratum_block),
+          by = "stratum_from"
+        ) |>
+        mutate(
+          end_ymin = stratum_from_base_ymin + end_block_ymin * scaled_height_of_stratum_block,
+          end_ymax = stratum_from_base_ymin + end_block_ymax * scaled_height_of_stratum_block
+        )
+      return(.x)
+    }) |>
+    bind_rows()
 
   return(flow_data)
 }
-
 
 #' Plot Flow Paths
 #'

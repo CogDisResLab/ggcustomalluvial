@@ -431,4 +431,4 @@ test_that("layout_strata_positions correctly handles layers with few strata", {
   expect_equal(lipidomics_strata$group[2], "RegionA")
 })
 
-# print(plot_alluvial_from_data(mock_input_data, omics_order = correct_omics_order, strata_order = sample_strata_order))
+print(plot_alluvial_from_data(mock_input_data, omics_order = correct_omics_order, strata_order = sample_strata_order))
