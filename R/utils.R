@@ -272,13 +272,15 @@ apply_split_positions_by_size <- function(df, OmicLayer, stratum, end = FALSE) {
   split_positions_by_size(filtered_df, output_stratum = end)
 }
 
-layout_flows_within_strata <- function(flow_data, strata_positions) {
+layout_flows_within_strata <- function(flow_data, strata_positions, strata_order=NULL) { # Accept strata_order
   flow_data <- flow_data |>
     mutate(relative_size = size / max(size))
 
+  # Ensure Drug is a factor
   flow_data <- flow_data |>
     mutate(Drug = as.factor(Drug))
 
+  # Join start (from) positions
   flow_data <- flow_data |>
     left_join(
       strata_positions |>
@@ -287,6 +289,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
       by = c("stratum_from", "OmicLayer_from")
     )
 
+  # Join end (to) positions
   flow_data <- flow_data |>
     left_join(
       strata_positions |>
@@ -295,18 +298,30 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
       by = c("stratum_to", "OmicLayer_to")
     )
 
+  # --- Start positions: stack flows ---
   flow_data <- flow_data |>
     group_by(OmicLayer_from, stratum_from) |>
     group_split() |>
     purrr::map(~ {
-      .x <- .x |>
-        mutate(startdrug_n_fac = as.integer(Drug))
+      # Determine the order of flows leaving this stratum_from based on their stratum_to's order
+      # If strata_order is provided, use it to create a consistent ordering factor for stratum_to
+      if (!is.null(strata_order)) {
+        .x <- .x |>
+          # Create a factor for stratum_to based on the global strata_order
+          mutate(stratum_to_ordered_fac = factor(stratum_to, levels = strata_order, ordered = TRUE)) |>
+          # Sort by the ordered stratum_to factor first, then by Drug
+          arrange(stratum_to_ordered_fac, as.integer(Drug))
+      } else {
+        # Fallback if strata_order is NULL (though it should ideally always be passed in plot_alluvial_from_data)
+        # In this case, we sort by stratum_to name then by Drug name for consistency.
+        .x <- .x |>
+          arrange(stratum_to, as.integer(Drug))
+      }
 
       total_height <- .x$start_ymax[1] - .x$start_ymin[1]
       total_relative_size <- sum(.x$relative_size)
 
       .x <- .x |>
-        arrange(startdrug_n_fac) |>
         mutate(
           scaled_height = relative_size / total_relative_size * total_height,
           startdrug_ymin = .x$start_ymin[1] + c(0, head(cumsum(scaled_height), -1)),
@@ -317,6 +332,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
     bind_rows() |>
     mutate(start_ymin = startdrug_ymin, start_ymax = startdrug_ymax)
 
+  # --- End positions (first map) ---
   flow_data <- flow_data |>
     group_by(OmicLayer_to, stratum_to, stratum_from) |>
     group_split() |>
@@ -337,6 +353,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
     }) |>
     bind_rows()
 
+  # --- End positions (second map): Stack stratum_from blocks ---
   flow_data <- flow_data |>
     group_by(OmicLayer_to, stratum_to) |>
     group_split() |>
@@ -348,9 +365,19 @@ layout_flows_within_strata <- function(flow_data, strata_positions) {
           stratum_from_overall_ymin = first(end_ymin),
           stratum_from_overall_ymax = first(end_ymax)
         ) |>
-        ungroup() |>
-        mutate(stratum_from_n_fac = as.integer(as.factor(stratum_from))) |>
-        arrange(stratum_from_n_fac)
+        ungroup()
+
+      # Crucial: Order stratum_from blocks by their order in strata_order
+      if (!is.null(strata_order)) {
+        stratum_from_summary <- stratum_from_summary |>
+          mutate(stratum_from_n_fac = factor(stratum_from, levels = strata_order, ordered = TRUE)) |>
+          arrange(stratum_from_n_fac)
+      } else {
+        # Fallback if strata_order is NULL, just alphabetical
+        stratum_from_summary <- stratum_from_summary |>
+          mutate(stratum_from_n_fac = as.integer(as.factor(stratum_from))) |>
+          arrange(stratum_from_n_fac)
+      }
 
       total_height_of_dest_stratum <- .x$end_ymax[1] - .x$end_ymin[1]
       total_relative_size_of_dest_stratum <- sum(stratum_from_summary$stratum_from_relative_size_sum)
