@@ -243,6 +243,8 @@ layout_flows_within_strata: no visible global function definition for
   ‘mutate’
 layout_flows_within_strata: no visible binding for global variable
   ‘size’
+layout_flows_within_strata: no visible binding for global variable
+  ‘Drug’
 layout_flows_within_strata: no visible global function definition for
   ‘left_join’
 layout_flows_within_strata: no visible global function definition for
