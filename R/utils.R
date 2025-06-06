@@ -483,7 +483,7 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
     geom_polygon(color = NA, alpha = 0.6) +
     geom_rect(
       data = strata_positions,
-      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), # CORRECTED THIS LINE!
       fill = "white", color = "black", linewidth = 0.3,
       inherit.aes = FALSE
     ) +
@@ -499,7 +499,6 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
       axis.title.x = element_text(margin = margin(t = 10), face = "bold"), # Show x-axis title
       axis.text.x = element_text(), # Show x-axis labels
       axis.ticks.x = element_blank(), # Remove x-axis ticks
-      # --- ADDED LINE FOR PLOT MARGIN ---
       plot.margin = margin(t = 10, r = 30, b = 20, l = 10, unit = "pt") # Top, Right, Bottom, Left margins
     ) +
     labs(
