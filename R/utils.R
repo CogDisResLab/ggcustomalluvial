@@ -11,66 +11,100 @@ library(dplyr)
 #' @export
 
 
-layout_strata_positions <- function(data, strata_order) {
+layout_strata_positions <- function(data, strata_order_list, omics_order) {
   library(dplyr)
+  library(purrr) # Ensure purrr is loaded for %||%
 
-  # Extract unique layers
-  unique_layers <- unique(data$Layer)
-  
-  for (layer in unique_layers) {
+  # Extract unique layers from the data, ordered by omics_order
+  unique_layers <- factor(unique(data$Layer), levels = omics_order, ordered = TRUE) %>%
+                   sort() %>%
+                   as.character() # Convert back to character for iteration
+
+  all_strata_positions_list <- list() # To collect results from each layer
+
+  for (layer_name in unique_layers) {
     # Filter and prepare data for current layer
     layer_data <- data %>%
-      filter(Layer == layer) %>%
+      filter(Layer == layer_name) %>%
       mutate(group = trimws(group)) %>%
-      select(-any_of(c("ymin", "ymax")))  # Remove potential conflicting columns
+      select(-any_of(c("ymin", "ymax")))
 
     unique_groups <- unique(layer_data$group)
 
     if (length(unique_groups) > 0) {
-      # Determine the order of groups
-      ordered_groups <- strata_order[[layer]] %||% rev(sort(unique_groups))
+      # Determine the order of groups for this specific layer
+      # Uses the named list `strata_order_list` (e.g., strata_order_list[["Proteomic"]])
+      ordered_groups <- strata_order_list[[layer_name]] %||% sort(unique_groups)
+
+      # Ensure all unique_groups from the current layer are in ordered_groups
+      # If some groups aren't in the provided order, append them (alphabetically)
+      missing_groups <- setdiff(unique_groups, ordered_groups)
+      if (length(missing_groups) > 0) {
+          ordered_groups <- c(ordered_groups, sort(missing_groups))
+      }
+      # Also, filter ordered_groups to only include those actually present in this layer's data
+      ordered_groups <- ordered_groups[ordered_groups %in% unique_groups]
+
 
       # Compute vertical layout values
       padding_proportion <- 0.00
       total_padding <- (length(ordered_groups) + 1) * padding_proportion
       available_height <- 1 - total_padding
 
-      if (available_height > 0) {
+      if (available_height <= 0 || length(ordered_groups) == 0) {
+        stratum_height <- 0
+        y_positions_start <- numeric(0)
+      } else {
         stratum_height <- available_height / length(ordered_groups)
         y_positions_start <- seq(0, 1 - stratum_height, length.out = length(ordered_groups))
-
-        group_y_positions <- data.frame(
-          group = ordered_groups,
-          ymin = y_positions_start,
-          ymax = y_positions_start + stratum_height
-        )
-
-        # Join new ymin/ymax values into layer_data
-        layer_data <- layer_data %>%
-          left_join(group_y_positions, by = "group")
-
-        # Merge the updated layer_data back into the full data
-        data <- data %>%
-          filter(Layer != layer) %>%
-          bind_rows(layer_data)
       }
-    }
 
-    # Ensure x columns exist before mutate
-    if (!"xmin" %in% names(data)) data$xmin <- NA_real_
-    if (!"xmax" %in% names(data)) data$xmax <- NA_real_
-    if (!"Layer_Pos" %in% names(data)) data$Layer_Pos <- NA_real_
-
-    # Compute x positions
-    layer_index <- which(unique_layers == layer)
-    data <- data %>%
-      mutate(
-        xmin = ifelse(Layer == layer, (layer_index - 1) * 10 + 1, xmin),
-        xmax = ifelse(Layer == layer, (layer_index - 1) * 10 + 7, xmax),
-        Layer_Pos = ifelse(Layer == layer, (layer_index - 1) * 10 + 4, Layer_Pos)
+      group_y_positions <- data.frame(
+        group = ordered_groups,
+        ymin = y_positions_start,
+        ymax = y_positions_start + stratum_height
       )
+
+      # Join new ymin/ymax values into layer_data
+      layer_data <- layer_data %>%
+        left_join(group_y_positions, by = "group")
+
+      # --- This is the omics_order logic part you wanted to ensure was present ---
+      # Compute x positions based on omics_order
+      # This part correctly uses omics_order to find the index of the current layer
+      layer_index <- which(omics_order == layer_name) # Find numerical position of current layer in omics_order
+
+      if (length(layer_index) == 0) {
+          # This should ideally not happen if omics_order is well-defined and covers all layers
+          warning(paste("Layer", layer_name, "not found in omics_order. X-positions might be incorrect."))
+          layer_pos_val <- NA_real_
+          xmin_val <- NA_real_
+          xmax_val <- NA_real_
+      } else {
+          # Use a consistent scaling factor for x-positions
+          # (layer_index - 1) shifts starting layer to 0, 1, 2... for calculations
+          base_x_pos <- (layer_index - 1) * 10 # Example scaling factor
+          xmin_val <- base_x_pos + 1
+          xmax_val <- base_x_pos + 7
+          layer_pos_val <- base_x_pos + 4 # Center position for labels
+      }
+
+      layer_data <- layer_data %>%
+        mutate(
+          xmin = xmin_val,
+          xmax = xmax_val,
+          Layer_Pos = layer_pos_val
+        )
+      # --- End of omics_order logic part ---
+
+      all_strata_positions_list[[layer_name]] <- layer_data
+    }
   }
-  return(data)
+
+  # Combine all processed layer data
+  final_strata_positions <- bind_rows(all_strata_positions_list)
+
+  return(final_strata_positions)
 }
 
 #' Create Strata Data
@@ -209,6 +243,9 @@ split_positions_by_size <- function(df, output_stratum = FALSE) {
   }
 
   vector_list <- matrix(NA_real_, ncol = 2, nrow = n)
+  # CRUCIAL FIX: Add column names to the matrix
+  colnames(vector_list) <- c("ymin_new", "ymax_new")
+
 
   size_col <- "size"
   ymin_col <- ifelse(!output_stratum, "start_ymin", "end_ymin")
@@ -230,8 +267,22 @@ split_positions_by_size <- function(df, output_stratum = FALSE) {
 
   for (sub_df in df_split) {
     ids <- sub_df$row_id
+    # Defensive check: ensure ymax_col and ymin_col exist in sub_df
+    # This was the other potential issue from prior tracebacks
+    if (!ymin_col %in% names(sub_df) || !ymax_col %in% names(sub_df)) {
+      warning(paste0("Missing '", ymin_col, "' or '", ymax_col, "' in sub_df. Skipping group."))
+      next
+    }
+
     y_max <- sub_df[[ymax_col]][1]
     y_min <- sub_df[[ymin_col]][1]
+
+    # Defensive check: if y_max or y_min are NA or NULL after indexing
+    if (length(y_max) == 0 || is.na(y_max) || length(y_min) == 0 || is.na(y_min)) {
+      warning("Y-boundary is NA or empty for a group. Skipping group.")
+      next
+    }
+
 
     stratum_height <- y_max - y_min
     total_size <- sum(sub_df[[size_col]])
@@ -249,14 +300,13 @@ split_positions_by_size <- function(df, output_stratum = FALSE) {
     current_y <- y_max
     for (i in seq_along(ids)) {
       h <- scaled_heights[i]
-      vector_list[ids[i], ] <- c(current_y, current_y - h)
+      vector_list[ids[i], ] <- c(current_y - h, current_y) # Store ymin first, then ymax
       current_y <- current_y - h
     }
   }
 
   return(vector_list)
 }
-
 
 apply_split_positions_by_size <- function(df, OmicLayer, stratum, end = FALSE) {
   filtered_df <- if (end) {
@@ -272,15 +322,13 @@ apply_split_positions_by_size <- function(df, OmicLayer, stratum, end = FALSE) {
   split_positions_by_size(filtered_df, output_stratum = end)
 }
 
-layout_flows_within_strata <- function(flow_data, strata_positions, strata_order=NULL) { # Accept strata_order
+layout_flows_within_strata <- function(flow_data, strata_positions, strata_order=NULL) {
   flow_data <- flow_data |>
     mutate(relative_size = size / max(size))
 
-  # Ensure Drug is a factor
   flow_data <- flow_data |>
     mutate(Drug = as.factor(Drug))
 
-  # Join start (from) positions
   flow_data <- flow_data |>
     left_join(
       strata_positions |>
@@ -289,7 +337,6 @@ layout_flows_within_strata <- function(flow_data, strata_positions, strata_order
       by = c("stratum_from", "OmicLayer_from")
     )
 
-  # Join end (to) positions
   flow_data <- flow_data |>
     left_join(
       strata_positions |>
@@ -303,20 +350,22 @@ layout_flows_within_strata <- function(flow_data, strata_positions, strata_order
     group_by(OmicLayer_from, stratum_from) |>
     group_split() |>
     purrr::map(~ {
-      # Determine the order of flows leaving this stratum_from based on their stratum_to's order
-      # If strata_order is provided, use it to create a consistent ordering factor for stratum_to
-      if (!is.null(strata_order)) {
+      current_omic_layer_to_for_ordering <- .x$OmicLayer_to[1] # The OmicLayer of the DESTINATION stratum for these flows
+
+      # Always create stratum_to_ordered_fac to avoid 'object not found' errors
+      if (!is.null(strata_order) && !is.null(strata_order[[as.character(current_omic_layer_to_for_ordering)]])) {
+        layer_specific_stratum_to_order <- strata_order[[as.character(current_omic_layer_to_for_ordering)]]
         .x <- .x |>
-          # Create a factor for stratum_to based on the global strata_order
-          mutate(stratum_to_ordered_fac = factor(stratum_to, levels = strata_order, ordered = TRUE)) |>
-          # Sort by the ordered stratum_to factor first, then by Drug
-          arrange(stratum_to_ordered_fac, as.integer(Drug))
+          mutate(stratum_to_ordered_fac = factor(stratum_to, levels = layer_specific_stratum_to_order, ordered = TRUE))
       } else {
-        # Fallback if strata_order is NULL (though it should ideally always be passed in plot_alluvial_from_data)
-        # In this case, we sort by stratum_to name then by Drug name for consistency.
+        # Fallback: create it as an unordered factor or as character for consistency
         .x <- .x |>
-          arrange(stratum_to, as.integer(Drug))
+          mutate(stratum_to_ordered_fac = factor(stratum_to)) # Create as an unordered factor
       }
+
+      # Arrange after stratum_to_ordered_fac is guaranteed to exist
+      .x <- .x |>
+        arrange(stratum_to_ordered_fac, as.integer(Drug))
 
       total_height <- .x$start_ymax[1] - .x$start_ymin[1]
       total_relative_size <- sum(.x$relative_size)
@@ -326,7 +375,9 @@ layout_flows_within_strata <- function(flow_data, strata_positions, strata_order
           scaled_height = relative_size / total_relative_size * total_height,
           startdrug_ymin = .x$start_ymin[1] + c(0, head(cumsum(scaled_height), -1)),
           startdrug_ymax = startdrug_ymin + scaled_height
-        )
+        ) |>
+        # Convert to character right before returning for bind_rows()
+        mutate(stratum_to_ordered_fac = as.character(stratum_to_ordered_fac))
       return(.x)
     }) |>
     bind_rows() |>
@@ -358,6 +409,7 @@ layout_flows_within_strata <- function(flow_data, strata_positions, strata_order
     group_by(OmicLayer_to, stratum_to) |>
     group_split() |>
     purrr::map(~ {
+      current_omic_layer_to <- .x$OmicLayer_to[1] # The destination omics layer for this block of flows
       stratum_from_summary <- .x |>
         group_by(stratum_from) |>
         summarise(
@@ -367,15 +419,16 @@ layout_flows_within_strata <- function(flow_data, strata_positions, strata_order
         ) |>
         ungroup()
 
-      # Crucial: Order stratum_from blocks by their order in strata_order
-      if (!is.null(strata_order)) {
+      # Order stratum_from blocks by their order in strata_order relevant to the destination layer
+      if (!is.null(strata_order) && !is.null(strata_order[[as.character(current_omic_layer_to)]])) {
+        layer_specific_strata_order <- strata_order[[as.character(current_omic_layer_to)]]
         stratum_from_summary <- stratum_from_summary |>
-          mutate(stratum_from_n_fac = factor(stratum_from, levels = strata_order, ordered = TRUE)) |>
+          mutate(stratum_from_n_fac = factor(stratum_from, levels = layer_specific_strata_order, ordered = TRUE)) |>
           arrange(stratum_from_n_fac)
       } else {
-        # Fallback if strata_order is NULL, just alphabetical
+        # Fallback: create it as an unordered factor or character
         stratum_from_summary <- stratum_from_summary |>
-          mutate(stratum_from_n_fac = as.integer(as.factor(stratum_from))) |>
+          mutate(stratum_from_n_fac = as.character(stratum_from)) |> # Ensure it exists as character
           arrange(stratum_from_n_fac)
       }
 
@@ -439,9 +492,10 @@ plot_flow_paths <- function(data, x_col = "start_x", y_col = "flow_y_center", wi
 plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL, title = NULL) {
   library(dplyr)
   library(ggplot2)
-  library(RColorBrewer) # Still loaded, but not directly used for drug_colors here
+  library(RColorBrewer)
   library(tidyr)
-  library(viridis) # Load the viridis library for scale_fill_viridis_d
+  library(viridis)
+  library(purrr) # Make sure purrr is loaded for set_names and map
 
   if (is.null(omics_order)) {
     stop("Error: The 'omics_order' argument must be provided.")
@@ -483,9 +537,33 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
     distinct()
   all_strata <- bind_rows(strata_from, strata_to) %>% distinct()
 
-  strata_positions <- layout_strata_positions(all_strata, strata_order)
+  # --- IMPORTANT CHANGE HERE ---
+  # Prepare strata_order for layout_strata_positions and layout_flows_within_strata
+  # It needs to be a named list where each name is an OmicLayer and the value is a vector of stratum names.
+  strata_order_for_layout <- NULL
+  if (!is.null(strata_order)) {
+    if (is.list(strata_order) && !is.null(names(strata_order))) {
+      # If it's already a named list, assume it's correctly structured per layer
+      strata_order_for_layout <- strata_order
+    } else if (is.vector(strata_order) && is.character(strata_order)) {
+      # If it's a simple character vector (global order), convert it to a named list for all layers
+      # Each omics layer will use the *same* global stratum order
+      strata_order_for_layout <- purrr::set_names(
+        lapply(omics_order, function(x) strata_order),
+        omics_order
+      )
+    } else {
+      warning("strata_order should be a character vector or a named list. Ignoring provided strata_order.")
+      strata_order_for_layout <- NULL # Revert to default if invalid format
+    }
+  }
+  # --- END OF IMPORTANT CHANGE ---
 
-  flow_data <- layout_flows_within_strata(input_data, strata_positions)
+  # Pass omics_order to layout_strata_positions so it can calculate Layer_Pos correctly
+  strata_positions <- layout_strata_positions(all_strata, strata_order_for_layout, omics_order)
+
+  # Pass the prepared strata_order_for_layout to layout_flows_within_strata
+  flow_data <- layout_flows_within_strata(input_data, strata_positions, strata_order_for_layout)
 
   # Generate ribbon geometry
   ribbon_data <- generate_alluvium_polygons(flow_data, strata_positions, curve_range = 0.0005)
@@ -501,7 +579,7 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
     geom_polygon(color = NA, alpha = 0.6) +
     geom_rect(
       data = strata_positions,
-      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), # CORRECTED THIS LINE!
+      aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
       fill = "white", color = "black", linewidth = 0.3,
       inherit.aes = FALSE
     ) +
@@ -513,11 +591,11 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
     ) +
     theme_void() +
     theme(
-      plot.title = element_text(hjust = 0.5), # Centered title
-      axis.title.x = element_text(margin = margin(t = 10), face = "bold"), # Show x-axis title
-      axis.text.x = element_text(), # Show x-axis labels
-      axis.ticks.x = element_blank(), # Remove x-axis ticks
-      plot.margin = margin(t = 10, r = 30, b = 20, l = 10, unit = "pt") # Top, Right, Bottom, Left margins
+      plot.title = element_text(hjust = 0.5),
+      axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+      axis.text.x = element_text(),
+      axis.ticks.x = element_blank(),
+      plot.margin = margin(t = 10, r = 30, b = 20, l = 10, unit = "pt")
     ) +
     labs(
       title = title,
@@ -525,7 +603,7 @@ plot_alluvial_from_data <- function(input_data, omics_order, strata_order = NULL
     ) +
     scale_x_continuous(breaks = omics_breaks, labels = omics_order) +
     scale_fill_viridis_d(name = "Drug", option = "D", direction = 1) +
-    theme(legend.position = "right") # Remove or set to "right" for debugging
+    theme(legend.position = "right")
 
   return(final_plot)
 }

@@ -47,7 +47,7 @@ sample_strata_order <- list(
 )
 
 # Layout strata positions based on the unique strata
-mock_strata_positions <- layout_strata_positions(all_strata, strata_order = sample_strata_order)
+mock_strata_positions <- layout_strata_positions(all_strata, omics_order = correct_omics_order, strata_order = sample_strata_order)
 
 # ========== HELPER FUNCTION FOR TESTING LAYOUT ==========
 test_layout_strata <- function(input_data, strata_order) {
@@ -61,39 +61,81 @@ test_layout_strata <- function(input_data, strata_order) {
   return(layout_strata_positions(strata_data, strata_order = strata_order))
 }
 
-test_position_adjacency <- function(positions, yvar_1, yvar_2) {
-  truth_table <- c()
-  positions <- round(positions[, c(yvar_1, yvar_2)], 6)
-  for (i in 2:nrow(positions)) {
-    prev_vector <- positions[i - 1, ]
-    vector <- positions[i, ]
-    if (any(is.na(prev_vector)) || any(is.na(vector))) {
-      truth_table <- c(truth_table, FALSE)
-    } else {
-      prev_vector <- as.vector(unlist(prev_vector))
-      vector <- as.vector(unlist(vector))
-      truth_table <- c(truth_table, prev_vector[2] == vector[1])
-   }
+test_position_adjacency <- function(positions, yvar_1 = "ymin", yvar_2 = "ymax") {
+  # Round to a small number of decimal places to account for floating-point inaccuracies
+  # Using 8 places for consistency, as it proved useful for debugging.
+  # This line correctly extracts columns by name ("ymin", "ymax") and creates a new tibble/df.
+  positions_numeric <- round(as.data.frame(positions[, c(yvar_1, yvar_2)]), 8)
+
+  # If there's only one position, there's no adjacency to check, so it's "adjacent" by definition
+  if (nrow(positions_numeric) <= 1) {
+    return(TRUE)
   }
-  return(truth_table)
-}
 
-test_split_positions_by_size <- function(input_data) {
+  # Sort by ymin to ensure correct order for adjacency check
+  # CRUCIAL FIX: Add drop = TRUE to ensure positions_numeric[, 1] returns a vector, not a tibble.
+  # Also, converting to a base data.frame first can sometimes help avoid tibble's default non-dropping behavior.
+  positions_sorted <- positions_numeric[order(positions_numeric[, 1, drop = TRUE]), ]
+
+  # Check for adjacency: the ymax of one ribbon should equal the ymin of the next ribbon
+  # The `all()` function ensures a single TRUE/FALSE is returned.
+  adjacency_check <- all(positions_sorted[-nrow(positions_sorted), 2] == positions_sorted[-1, 1])
+
+  return(adjacency_check)
+}
+test_split_positions_by_size <- function(input_data_list) {
   truth_table <- c()
 
-  # Group by OmicLayer_from, stratum_from, and Drug
-  grouped_input <- input_data %>%
+  raw_flow_data <- input_data_list$flow_data
+  strata_positions_df <- input_data_list$strata_positions
+  strata_order_for_layout <- input_data_list$strata_order
+  prepared_flow_data <- layout_flows_within_strata(
+    raw_flow_data,
+    strata_positions_df,
+    strata_order_for_layout
+  )
+
+  # Test for flows from 'OmicLayer_from'
+  grouped_input_for_from_flows <- prepared_flow_data %>%
     group_by(OmicLayer_from, stratum_from, Drug) %>%
     group_split()
 
-  for (group in grouped_input) {
-    positions <- split_positions_by_size(group)
-    if (nrow(positions) < 2) {
-      next  # Skip groups with only one entry
+  for (group_df in grouped_input_for_from_flows) {
+    if (nrow(group_df) == 0) {
+      next
     }
+    positions_matrix <- split_positions_by_size(group_df, output_stratum = FALSE)
 
-  truth_table <- c(truth_table, test_position_adjacency(positions))
+    if (nrow(positions_matrix) > 1) {
+      # Debugging: Print positions_matrix for failing groups
+      current_group_info <- paste0("Group: OmicLayer_from=", group_df$OmicLayer_from[1],
+                                   ", stratum_from=", group_df$stratum_from[1],
+                                   ", Drug=", group_df$Drug[1])
+      result <- test_position_adjacency(positions_matrix, yvar_1 = 1, yvar_2 = 2)
+      truth_table <- c(truth_table, result)
+    }
   }
+
+  # (Repeat similar debugging block for 'OmicLayer_to' flows)
+  grouped_input_for_to_flows <- prepared_flow_data %>%
+    group_by(OmicLayer_to, stratum_to, Drug) %>%
+    group_split()
+
+  for (group_df in grouped_input_for_to_flows) {
+    if (nrow(group_df) == 0) {
+      next
+    }
+    positions_matrix <- split_positions_by_size(group_df, output_stratum = TRUE)
+
+    if (nrow(positions_matrix) > 1) {
+      current_group_info <- paste0("Group: OmicLayer_to=", group_df$OmicLayer_to[1],
+                                   ", stratum_to=", group_df$stratum_to[1],
+                                   ", Drug=", group_df$Drug[1])
+      result <- test_position_adjacency(positions_matrix, yvar_1 = 1, yvar_2 = 2)
+      truth_table <- c(truth_table, result)
+    }
+  }
+
 
   return(truth_table)
 }
@@ -139,7 +181,7 @@ generate_input_for_flows_within_function <- function(input_data, omics_order=cor
     distinct()
   all_strata <- bind_rows(strata_from, strata_to) %>% distinct()
 
-  strata_positions <- layout_strata_positions(all_strata, strata_order)
+  strata_positions <- layout_strata_positions(all_strata, omics_order, strata_order)
   return(input_data)
 }
 
@@ -187,7 +229,7 @@ generate_input_for_polygons_function <- function(input_data, omics_order=correct
   # Layout strata positions using the provided order
   strata_order_cleaned <- lapply(strata_order, function(x) gsub("\\s+", "", x))
 
-  strata_positions <- layout_strata_positions(all_strata, strata_order)
+  strata_positions <- layout_strata_positions(all_strata, omics_order, strata_order)
 
   flow_data <- layout_flows_within_strata(input_data, strata_positions)
   if (!("Drug" %in% colnames(flow_data))) {
@@ -215,11 +257,12 @@ generate_input_for_polygons_function <- function(input_data, omics_order=correct
   return(flow_data)
 }
 
-generate_input_for_flow_function <- function(input_data, omics_order=correct_omics_order, strata_order=NULL) {
+generate_input_for_flow_function <- function(input_data, omics_order = correct_omics_order, strata_order = NULL) {
   library(dplyr)
-  library(ggplot2)
-  library(RColorBrewer)
+  library(ggplot2) # Not strictly needed here, but kept if other parts rely on it
+  library(RColorBrewer) # Not strictly needed here
   library(tidyr) # Ensure tidyr is loaded
+  library(purrr) # For set_names and map
 
   if (is.null(omics_order)) {
     stop("Error: The 'omics_order' argument must be provided.")
@@ -251,7 +294,7 @@ generate_input_for_flow_function <- function(input_data, omics_order=correct_omi
     )
     stop(error_message)
   }
-  
+
   # Collect all strata
   strata_from <- input_data %>%
     select(Layer = OmicLayer_from, group = stratum_from) %>%
@@ -261,59 +304,30 @@ generate_input_for_flow_function <- function(input_data, omics_order=correct_omi
     distinct()
   all_strata <- bind_rows(strata_from, strata_to) %>% distinct()
 
-  # Layout strata positions using the provided order
-  strata_order_cleaned <- lapply(strata_order, function(x) gsub("\\s+", "", x))
-
-  strata_positions <- layout_strata_positions(all_strata, strata_order)
-
-  flow_data <- input_data
-    list_1 <- flow_data %>%
-    group_by(Drug, OmicLayer_from, stratum_from) %>%
-    group_split()
-
-
-  # List 2: Subdataframes grouped by Drug, OmicLayer_to, and stratum_to
-  list_2 <- flow_data %>%
-    group_by(Drug, OmicLayer_to, stratum_to) %>%
-    group_split()
-
-  # Initialize an empty list to store the processed sub-dataframes from list_1
-  processed_list_1 <- list()
-  for (df in list_1) {
-    if (nrow(df) > 0) {
-      df_processed <- df %>%
-        mutate(total_size = sum(size)) %>%
-        mutate(
-          start_x = sapply(OmicLayer_from, function(layer) {
-            strata_positions %>%
-              filter(Layer == layer) %>%
-              pull(xmax) %>%
-              first() # Ensure we get a single value
-          }),
-          end_x = sapply(OmicLayer_to, function(layer) {
-            strata_positions %>%
-              filter(Layer == layer) %>%
-              pull(xmin) %>%
-              first() # Ensure we get a single value
-          }),
-
-          start_ymin = sapply(1:length(.), function(i) {
-            strata_positions[which(.[["OmicLayer_from"]][i] == strata_positions[["Layer"]] & .[["stratum_from"]][i] == strata_positions[["group"]]),] %>%
-              pull(ymin) %>%
-              first() # Ensure we get a single value
-          }) %>% first(),
-          start_ymax = sapply(1:length(.), function(i) {
-            strata_positions[which(.[["OmicLayer_from"]][i] == strata_positions[["Layer"]] & .[["stratum_from"]][i] == strata_positions[["group"]]),] %>%
-              pull(ymax) %>%
-              first() # Ensure we get a single value
-          }) %>% first(),
-        )
-      processed_list_1[[length(processed_list_1) + 1]] <- df_processed
+  # Prepare strata_order for layout_strata_positions and layout_flows_within_strata
+  # This logic is consistent with plot_alluvial_from_data
+  strata_order_for_layout <- NULL
+  if (!is.null(strata_order)) {
+    if (is.list(strata_order) && !is.null(names(strata_order))) {
+      strata_order_for_layout <- strata_order
+    } else if (is.vector(strata_order) && is.character(strata_order)) {
+      strata_order_for_layout <- purrr::set_names(
+        lapply(omics_order, function(x) strata_order),
+        omics_order
+      )
+    } else {
+      warning("strata_order should be a character vector or a named list. Ignoring provided strata_order.")
+      strata_order_for_layout <- NULL
     }
   }
-  # Combine the processed sub-dataframes from list_1 back into one
-  processed_flow_data_1 <- bind_rows(processed_list_1)
-  return(processed_flow_data_1)
+
+  # Call layout_strata_positions to get the stratum coordinates
+  # CRUCIAL FIX: Swap the order of 'omics_order' and 'strata_order_for_layout'
+  strata_positions <- layout_strata_positions(all_strata, strata_order_for_layout, omics_order)
+
+  # Debugging line: Print columns of 'strata_positions' within generate_input_for_flow_function right before return
+
+  return(list(flow_data = input_data, strata_positions = strata_positions, strata_order = strata_order_for_layout))
 }
 
 # ========== TESTS ==========
@@ -329,7 +343,7 @@ test_that("layout_strata_positions creates position columns", {
   ) %>%
     mutate(Layer = factor(Layer, levels = correct_omics_order, ordered = TRUE)) %>%
     distinct(Layer, group) # Ensure uniqueness here as well
-  result <- layout_strata_positions(all_strata_test, strata_order = sample_strata_order)
+  result <- layout_strata_positions(all_strata_test, omics_order=correct_omics_order, strata_order = sample_strata_order)
   result_adjacent <- result |> group_by(Layer) |> as.data.frame()
   result_adjacent <- result |> group_split(Layer) |> purrr::map(function(X) test_position_adjacency(X, 'ymin', 'ymax')) |> map(function(X) expect_true(all(X)))
   expect_true(all(c("xmin", "xmax", "ymin", "ymax", "Layer_Pos") %in% names(result)))
@@ -412,7 +426,7 @@ test_that("layout_strata_positions correctly handles layers with few strata", {
 
   # Pass a copy to layout_strata_positions
   layout_result <- layout_strata_positions(strata_data_few_original %>% tibble::as_tibble() %>% as.data.frame(),
-                                          strata_order = few_strata_order)
+                                          strata_order = few_strata_order, omics_order=correct_omics_order)
 
   # Find the ymin and ymax for Lipidomics strata
   lipidomics_strata <- layout_result %>%
@@ -431,4 +445,4 @@ test_that("layout_strata_positions correctly handles layers with few strata", {
   expect_equal(lipidomics_strata$group[2], "RegionA")
 })
 
-# print(plot_alluvial_from_data(mock_input_data, omics_order = correct_omics_order, strata_order = sample_strata_order))
+print(plot_alluvial_from_data(mock_input_data, omics_order = correct_omics_order, strata_order = sample_strata_order))
