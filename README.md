@@ -3,7 +3,7 @@
 
 The package handles all the necessary data manipulation and layout calculations, freeing you to focus on visualizing the relationships and flows within your data.
 
-Features
+## Features
 Integrated with ggplot2: Use ggcustomalluvial seamlessly with the ggplot2 ecosystem.
 
 Custom Layout: Define the precise order of your data layers and strata to create meaningful visualizations.
@@ -12,23 +12,27 @@ Multi-omics Ready: Optimized to handle multi-layered data, such as genomics, tra
 
 Clean & Descriptive Output: The package produces publication-quality plots that are easy to interpret.
 
-Installation
+## Installation
 You can install the package directly from GitHub using the devtools package:
-
-# install.packages("devtools")
+```r
+install.packages("devtools")
 devtools::install_github("CogDisResLab/ggcustomalluvial")
+```
 
-Usage
+
+## Usage
 The core function of the package is `plot_alluvial_from_data()`. You provide your data frame, a specified order for your omics layers, and optionally, a custom order for the strata within each layer.
 
+```r
 # Load the package and example data
 library(ggcustomalluvial)
 library(dplyr)
 library(ggplot2)
-
+```
 # Assuming 'multiomics_test_data.csv' is available
 # Here's a quick example of a sample data structure
 # that the function expects.
+```r
 df <- data.frame(
   OmicLayer_from = c("Genomics", "Genomics", "Transcriptomics"),
   stratum_from = c("Tumor A", "Tumor B", "Tumor A"),
@@ -62,7 +66,7 @@ print(alluvial_plot)
 
 # To save the plot
 # ggsave("alluvial_plot.png", plot = alluvial_plot)
-
+```
 Contributing
 We welcome contributions! Please feel free to submit a pull request or open an issue if you encounter any bugs or have suggestions for new features.
 
