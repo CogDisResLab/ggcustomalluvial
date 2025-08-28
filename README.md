@@ -28,11 +28,11 @@ The core function of the package is `plot_alluvial_from_data()`. You provide you
 library(ggcustomalluvial)
 library(dplyr)
 library(ggplot2)
-```
+
 # Assuming 'multiomics_test_data.csv' is available
 # Here's a quick example of a sample data structure
 # that the function expects.
-```r
+
 df <- data.frame(
   OmicLayer_from = c("Genomics", "Genomics", "Transcriptomics"),
   stratum_from = c("Tumor A", "Tumor B", "Tumor A"),
